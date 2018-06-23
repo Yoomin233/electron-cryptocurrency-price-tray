@@ -8,6 +8,9 @@ body {
   font-family: Roboto, -apple-system, BlinkMacSystemFont, "Helvetica Neue",
     "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", sans-serif;
 }
+*:focus {
+  outline: none;
+}
 body {
   padding-top: 10px;
 }
@@ -51,6 +54,7 @@ body {
   padding-top: 20px;
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
 }
 .header > * {
   flex-shrink: 0;
@@ -71,11 +75,12 @@ body {
   text-align: right;
 }
 .scrollable {
-  height: 100%;
+  /* height: 100%; */
   overflow-y: scroll;
   padding: 10px;
   padding-top: 5px;
   box-sizing: border-box;
+  flex-grow: 1;
 }
 .symbol-block {
   padding: 10px 0;
@@ -141,17 +146,18 @@ body {
   transition: all 0.3s ease-in-out;
   cursor: pointer;
   /* padding-top: 10px; */
-  /* margin-top: 10px; */
+  margin-top: 10px;
+  /* padding-top: 10px; */
 }
-.add:hover {
+/* .add:hover {
   transform: translateY(2px);
-}
+} */
 .infoAndThettings {
-  padding:5px 10px;
+  padding: 5px 10px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  font-size: .8em;
+  font-size: 0.8em;
 }
 .infoAndThettings > span:first-of-type > img {
   width: 15px;
@@ -178,19 +184,19 @@ body {
   position: relative;
   /* border: 1px solid #909090; */
   background-color: inherit;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
   box-shadow: 0 0 3px #a09f9f;
 }
 .themeWrapper > span::before {
   width: 15px;
-  content: '';
+  content: "";
   height: 15px;
   display: block;
   border-radius: 50%;
   background-color: rgba(194, 194, 194, 0.96);
   left: 0;
   top: 0;
-  transition: transform .3s ease;
+  transition: transform 0.3s ease;
   box-sizing: border-box;
   /* border: 1px solid black; */
   z-index: 2;
@@ -198,7 +204,7 @@ body {
 .themeWrapper > span::after {
   width: 30px;
   height: 15px;
-  content: '';
+  content: "";
   display: block;
   position: absolute;
   left: 0;
@@ -208,13 +214,39 @@ body {
   z-index: -1;
   transform-origin: center center;
   transform: scale(0);
-  transition: all .3s ease;
+  transition: all 0.3s ease;
 }
 .themeWrapper > input:checked + span::before {
   transform: translateX(15px);
 }
 .themeWrapper > input:checked + span::after {
   transform: none;
+}
+.symbolAdder {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 300px;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.8);
+  transition: all 0.4s cubic-bezier(0.4, 0.1, 0, 1);
+  /* transform: translateY(500px); */
+  margin: auto;
+  transform: scale(1.5);
+  opacity: 0;
+  padding: 10px;
+  box-sizing: border-box;
+  /* display: none; */
+}
+.symbolAdder:focus {
+  outline: none;
+}
+.symbolAdder.showed {
+  transform: none;
+  opacity: 1;
+  /* display: block; */
 }
 @keyframes spin {
   to {

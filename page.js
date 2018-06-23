@@ -68,6 +68,8 @@ const fs = require("fs");
     ".infoAndThettings > span:first-of-type > img"
   );
   const addSymbolButton = document.querySelector("div.add");
+  const adder = document.querySelector("div.symbolAdder");
+  const addInput = document.querySelector("input.addInput");
 
   const ifDarkend = localStorage.getItem("themeDarken");
   if (ifDarkend) {
@@ -180,7 +182,44 @@ const fs = require("fs");
   });
 
   // add symbol
-  addSymbolButton.addEventListener('click', e => {
-    
-  })
+  addSymbolButton.addEventListener("click", e => {
+    if (document.activeElement === adder) {
+      return;
+    }
+    adder.style.display = "block";
+    adder.focus();
+    adder.classList.add("showed");
+    if (!adder.dataset.pairs) {
+      fetch("https://data.gateio.io/api2/1/pairs")
+        .then(data => data.json())
+        .then(data => {
+          adder.dataset.pairs = JSON.stringify(
+            data
+              .filter(pair => /USDT/.test(pair))
+              .map(pair => pair.toLowerCase())
+          );
+        });
+    }
+  });
+
+  //
+  // adder.addEventListener("blur", () => {
+  //   adder.classList.remove("showed");
+  //   setTimeout(() => {
+  //     adder.style.display = "none";
+  //   }, 500);
+  // });
+  addInput.addEventListener("input", e => {
+    const inputVal = e.target.value;
+    const display = document.querySelector("div.pairsDisplay");
+    let pairs = adder.dataset.pairs;
+    if (pairs) {
+      pairs = JSON.parse(pairs);
+      const pairListHTML = pairs
+        .filter(pair => pair.match(inputVal))
+        .map(pair => `<p data-pair=${pair}>${pair}</p>`)
+        .join("");
+      display.innerHTML = pairListHTML;
+    }
+  });
 })();
