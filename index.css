@@ -1,0 +1,223 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", sans-serif;
+}
+body {
+  padding-top: 10px;
+}
+.mainWrapper {
+  background: #eaeaea;
+  width: 100%;
+  height: 100%;
+  padding-bottom: 10px;
+  position: relative;
+  border-radius: 5px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  transition: color 0.3s ease, background 0.3s ease;
+  opacity: 0.95;
+}
+.mainWrapper.darken {
+  background: #1b1b1b;
+  color: #d6d6d6;
+}
+.mainWrapper.darken .percentage {
+  background-color: #33923a;
+  color: #e6e6e6;
+}
+.mainWrapper::before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  top: -5px;
+  background-color: inherit;
+  transform: rotate(45deg);
+}
+.header {
+  padding: 10px;
+  padding-bottom: 0;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: row;
+}
+.header > * {
+  flex-shrink: 0;
+  font-size: 0.8em;
+}
+.header > *:nth-child(1) {
+  width: 28%;
+}
+.header > *:nth-child(2) {
+  width: 32%;
+}
+.header > *:nth-child(3) {
+  width: 20%;
+  text-align: right;
+}
+.header > *:nth-child(4) {
+  width: 20%;
+  text-align: right;
+}
+.scrollable {
+  height: 100%;
+  overflow-y: scroll;
+  padding: 10px;
+  padding-top: 5px;
+  box-sizing: border-box;
+}
+.symbol-block {
+  padding: 10px 0;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #cccccc;
+  justify-content: space-between;
+}
+.symbol-block > * {
+  flex-shrink: 0;
+  text-align: right;
+}
+.symbol-name {
+  width: 28%;
+  /*   flex-shrink: 0; */
+  line-height: 2;
+  text-align: left;
+}
+.lowHigh {
+  width: 32%;
+  font-size: 0.7em;
+  white-space: nowrap;
+}
+.lowHigh > p {
+  margin: 0;
+  text-align: left;
+}
+.last {
+  width: 20%;
+}
+.percentage {
+  width: 18%;
+  margin-left: 2%;
+  /*   margin- */
+  /* font-family: monospace; */
+  box-sizing: border-box;
+  background-color: #56ea61;
+  text-align: center;
+  color: #fff;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+.percentage.raise {
+  background-color: red;
+}
+.last,
+.percentage {
+  line-height: 2;
+}
+.add {
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 auto;
+  /* border: 1px solid black; */
+  text-align: center;
+  line-height: 1.5em;
+  font-size: 1.5em;
+  border-radius: 50%;
+  background-color: #26e026;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0px 0px 5px gray;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  /* padding-top: 10px; */
+  /* margin-top: 10px; */
+}
+.add:hover {
+  transform: translateY(2px);
+}
+.infoAndThettings {
+  padding:5px 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: .8em;
+}
+.infoAndThettings > span:first-of-type > img {
+  width: 15px;
+  height: 15px;
+  vertical-align: text-top;
+  margin-left: 5px;
+  animation: spin 3s linear infinite;
+  animation-play-state: paused;
+  cursor: pointer;
+}
+.infoAndThettings > span:first-of-type > img.spinning {
+  animation-play-state: running;
+}
+.themeWrapper > input#themeChanger {
+  display: none;
+}
+.themeWrapper > span {
+  width: 30px;
+  height: 15px;
+  display: inline-block;
+  background-color: white;
+  vertical-align: bottom;
+  border-radius: 8px;
+  position: relative;
+  /* border: 1px solid #909090; */
+  background-color: inherit;
+  transition: all .3s ease;
+  box-shadow: 0 0 3px #a09f9f;
+}
+.themeWrapper > span::before {
+  width: 15px;
+  content: '';
+  height: 15px;
+  display: block;
+  border-radius: 50%;
+  background-color: rgba(194, 194, 194, 0.96);
+  left: 0;
+  top: 0;
+  transition: transform .3s ease;
+  box-sizing: border-box;
+  /* border: 1px solid black; */
+  z-index: 2;
+}
+.themeWrapper > span::after {
+  width: 30px;
+  height: 15px;
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: rgba(51, 146, 58, 0.96);
+  border-radius: 8px;
+  z-index: -1;
+  transform-origin: center center;
+  transform: scale(0);
+  transition: all .3s ease;
+}
+.themeWrapper > input:checked + span::before {
+  transform: translateX(15px);
+}
+.themeWrapper > input:checked + span::after {
+  transform: none;
+}
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
