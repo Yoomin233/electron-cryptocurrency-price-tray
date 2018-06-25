@@ -21,20 +21,30 @@
     <div class="add">+</div>
     <!-- <div class="updateTime"></div> -->
     <div class='infoAndThettings'>
-      <span>最后更新:<span></span><img src="./assets/anticlockwise-downwards-and-upwards-open-circle-arrows_1f504.png" alt=""></span>
+      <span>最后更新:
+        <span></span>
+        <img src="./assets/anticlockwise-downwards-and-upwards-open-circle-arrows_1f504.png" alt="">
+      </span>
       <span class='themeWrapper'>
         暗色主题:
         <!-- <label for="themeChanger"></label> -->
         <input type="checkbox" name="theme" id="themeChanger">
         <span></span>
       </span>
-      <button class='editList'>编辑</button>
+      <div class="editWrapper">
+        <button class='editList'>编辑</button>
+      </div>
     </div>
-    <div class="symbolAdder" tabindex='-1'>
+    <div class="symbolAdder" style='display: none;'>
+      <p>
+        <span>增加token</span>
+        <span>X</span>
+      </p>
       <div class="addInputWrapper">
-        <input class='addInput' type="text">
+        <input class='addInput' type="text" placeholder="请输入交易对名称">
         <div class="pairsDisplay"></div>
       </div>
+      <button>确定</button>
     </div>
   </div>
   <script type='text/javascript' src='./page.js'></script>

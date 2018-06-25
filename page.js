@@ -1,61 +1,13 @@
 const { ipcRenderer } = require("electron");
 // const pako = require("pako");
 const fs = require("fs");
-// fs.readdir("./assets", (err, files) => console.log(files));
-// ipcRenderer.send('heheE', '3333')
-
-// const wsAddr = "wss://api.huobi.pro/ws";
-
-// function subscribe(ws) {
-//   const symbols = ["bchusdt"];
-//   // 订阅深度
-//   // 谨慎选择合并的深度，ws每次推送全量的深度数据，若未能及时处理容易引起消息堆积并且引发行情延时
-//   for (let symbol of symbols) {
-//     ws.send(
-//       JSON.stringify({
-//         sub: `market.${symbol}.depth.step0`,
-//         id: `${symbol}`
-//       })
-//     );
-//   }
-// }
-
-// function init() {
-//   const ws = new WebSocket(wsAddr);
-//   ws.addEventListener("open", () => {
-//     console.log("ws opened!");
-//     subscribe(ws);
-//   });
-//   ws.addEventListener("message", data => {
-//     const text = pako.deflate(data, {
-//       to: "string"
-//     });
-//     const msg = JSON.parse(text);
-//     if (msg.ping) {
-//       console.log("ping received!");
-//       ws.send(
-//         JSON.stringify({
-//           pong: msg.ping
-//         })
-//       );
-//     } else if (msg.tick) {
-//       console.log(msg);
-//     } else {
-//       console.log(msg);
-//     }
-//   });
-//   ws.addEventListener("close", () => {
-//     console.log("close");
-//     setTimeout(init, 1000);
-//   });
-//   ws.addEventListener("error", err => {
-//     console.log("error", err);
-//     setTimeout(init, 1000);
-//   });
-// }
-// init();
+const { throttle } = require("./tools");
 (function() {
-  let symbols = ["btc"];
+  let symbols =
+    (localStorage.getItem("tokens_list") &&
+      localStorage.getItem("tokens_list").split(",")) ||
+    [];
+  let prices = [];
 
   const mainWrapper = document.querySelector(".scrollable");
   const outerWrapper = document.querySelector("div.mainWrapper");
@@ -81,9 +33,11 @@ const fs = require("fs");
 
   function fetchLatestPrice() {
     let promiseArr = [];
+    lastFetchImg.classList.add("spin");
+    localStorage.setItem("tokens_list", symbols);
     for (let i of symbols) {
       promiseArr.push(
-        fetch(`https://data.gateio.io/api2/1/ticker/${i}_usdt`).then(data =>
+        fetch(`https://data.gateio.io/api2/1/ticker/${i}`).then(data =>
           data.json()
         )
       );
@@ -91,8 +45,27 @@ const fs = require("fs");
     // return new Promise((resolve, reject))
     return Promise.all(promiseArr).then(data => {
       // console.log(data);
-      lastFetchedTime.innerHTML = Date.now();
+      lastFetchedTime.innerHTML = `${
+        new Date().getHours() < 10
+          ? "0" + new Date().getHours()
+          : new Date().getHours()
+      }:${
+        new Date().getMinutes() < 10
+          ? "0" + new Date().getMinutes()
+          : new Date().getMinutes()
+      }:${
+        new Date().getSeconds() < 10
+          ? "0" + new Date().getSeconds()
+          : new Date().getSeconds()
+      }`;
       renderToPage(data);
+      // prices = [];
+      for (let [index, val] of data.entries()) {
+        const thisSymbol = symbols[index];
+        prices[index] = Object.assign({}, val, { symbolName: thisSymbol });
+      }
+      // console.log(prices);
+      lastFetchedTime.classList.remove("spin");
       return data;
     });
     // console.log(resps);
@@ -112,15 +85,17 @@ const fs = require("fs");
         thisSymbolWrapper.setAttribute("class", "symbol-block");
         mainWrapper.appendChild(thisSymbolWrapper);
       }
-      thisSymbolWrapper.innerHTML = `<div class='symbol-name'>${thisSymbol.toUpperCase()}-USDT</div><div class='lowHigh'><p>low:${Number(
+      thisSymbolWrapper.innerHTML = `<div class='symbol-name'>${thisSymbol.toUpperCase()}</div><div class='lowHigh'><p>low:${Number(
         val.low24hr
-      ).toFixed(2)}</p><p>high:${Number(val.high24hr).toFixed(
+      ).toFixed(4)}</p><p>high:${Number(val.high24hr).toFixed(
+        4
+      )}</p></div><div class='last'>${Number(val.last).toFixed(
         2
-      )}</p></div><div class='last'>${val.last}</div><div class=${
+      )}</div><div class="${
         Number(val.percentChange) >= 0 ? "percentage raise" : "percentage"
-      }>${val.percentChange >= 0 ? "+" : ""}${Number(val.percentChange).toFixed(
-        2
-      )}%</div>`;
+      }">${val.percentChange >= 0 ? "+" : ""}${Number(
+        val.percentChange
+      ).toFixed(2)}%</div>${editingList ? "<div class='delBtn'>-</div>" : ""}`;
     }
   }
 
@@ -133,19 +108,19 @@ const fs = require("fs");
       fetchLatestPrice();
       mainTimer = setTimeout(inner, fetchInterval);
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       mainTimer = setTimeout(inner, fetchInterval);
     }
   }, fetchInterval);
 
   ipcRenderer.on("event-window-blur", e => {
-    console.log("blured!");
-    fetchInterval = 60000;
+    // console.log("blured!");
+    fetchInterval = 300000;
     // clearTimeout(mainTimer)
   });
 
   ipcRenderer.on("event-window-focus", e => {
-    console.log("focus!");
+    // console.log("focus!");
     fetchInterval = 5000;
   });
 
@@ -181,45 +156,232 @@ const fs = require("fs");
     });
   });
 
-  // add symbol
+  // add symbol appear
   addSymbolButton.addEventListener("click", e => {
     if (document.activeElement === adder) {
       return;
     }
     adder.style.display = "block";
-    adder.focus();
-    adder.classList.add("showed");
+    requestAnimationFrame(() => {
+      adder.classList.add("showed");
+      addInput.focus();
+    });
+    // setTimeout(() => {
+    // }, 0);
     if (!adder.dataset.pairs) {
       fetch("https://data.gateio.io/api2/1/pairs")
         .then(data => data.json())
         .then(data => {
           adder.dataset.pairs = JSON.stringify(
             data
-              .filter(pair => /USDT/.test(pair))
+              // .filter(pair => /USDT/.test(pair))
               .map(pair => pair.toLowerCase())
           );
         });
     }
   });
 
-  //
-  // adder.addEventListener("blur", () => {
-  //   adder.classList.remove("showed");
-  //   setTimeout(() => {
-  //     adder.style.display = "none";
-  //   }, 500);
+  // add symbol disappear
+  document
+    .querySelector("div.symbolAdder > p:first-of-type > span:last-of-type")
+    .addEventListener("click", addSymbolDisappear);
+
+  function addSymbolDisappear(e) {
+    adder.classList.remove("showed");
+    setTimeout(() => {
+      adder.style.display = "none";
+    }, 500);
+  }
+  // addInput.addEventListener("input", e => {
+
+  // console.log(e.nativeEvent)
   // });
-  addInput.addEventListener("input", e => {
-    const inputVal = e.target.value;
-    const display = document.querySelector("div.pairsDisplay");
-    let pairs = adder.dataset.pairs;
-    if (pairs) {
-      pairs = JSON.parse(pairs);
-      const pairListHTML = pairs
-        .filter(pair => pair.match(inputVal))
-        .map(pair => `<p data-pair=${pair}>${pair}</p>`)
-        .join("");
-      display.innerHTML = pairListHTML;
+  // function appendPairsHtml (e) {
+
+  // }
+  // addInput.addEventListener('focus', e => {
+
+  // })\
+  addInput.addEventListener("keydown", e => {
+    if (e.keyCode === 38 || e.keyCode === 40) {
+      e.preventDefault();
     }
   });
+  addInput.addEventListener(
+    "keyup",
+    (() => {
+      let selectedIndex = -1;
+      const display = document.querySelector("div.pairsDisplay");
+      display.addEventListener(
+        "mousemove",
+        throttle(
+          e => {
+            // console.log(e);
+            if (e.srcElement.nodeName === "P") {
+              const thisChildIndex = Array.prototype.indexOf.call(
+                display.childNodes,
+                e.srcElement
+              );
+              selectedIndex = thisChildIndex;
+              display.childNodes.forEach(
+                (elem, index) =>
+                  index === selectedIndex
+                    ? elem.classList.add("pair_selected")
+                    : elem.classList.remove("pair_selected")
+              );
+            }
+          },
+          200,
+          true
+        )
+      );
+      // let displayHandlePromise
+      display.addEventListener("click", e => {
+        if (selectedIndex !== -1) {
+          const selectedPair = display.childNodes[selectedIndex].dataset.pair;
+          // console.log(selectedPair);
+          addInput.value = selectedPair;
+          selectedIndex = -1;
+          display.innerHTML = "";
+        }
+      });
+      addInput.addEventListener("blur", e => {
+        // console.log(e);
+        setTimeout(() => {
+          selectedIndex = -1;
+          display.innerHTML = "";
+        }, 200);
+      });
+      addInput.addEventListener("focus", e => {
+        if (e.target.value) {
+          appendPairsHtml(e);
+        }
+      });
+      function appendPairsHtml(e) {
+        let pairs = adder.dataset.pairs;
+        if (pairs) {
+          pairs = JSON.parse(pairs);
+          const pairListHTML = pairs
+            .filter(pair => pair.match(e.target.value))
+            .map(pair => `<p data-pair=${pair}>${pair}</p>`)
+            .join("");
+          display.innerHTML = pairListHTML;
+        }
+        selectedIndex = -1;
+      }
+      return e => {
+        if (!e.target.value) {
+          display.innerHTML = "";
+          return;
+        }
+        const { keyCode } = e;
+        const displayChildren = display.childNodes;
+        // const inputVal = e.target.value;
+        // up
+        if (keyCode === 38) {
+          // e.preventDefault();
+          if (selectedIndex > 0) {
+            selectedIndex--;
+            displayChildren.forEach(
+              (elem, index) =>
+                index === selectedIndex
+                  ? (elem.classList.add("pair_selected"), elem.scrollIntoView())
+                  : elem.classList.remove("pair_selected")
+            );
+          }
+        } else if (keyCode === 40) {
+          // e.preventDefault();
+          if (selectedIndex < displayChildren.length - 1) {
+            selectedIndex++;
+            displayChildren.forEach(
+              (elem, index) =>
+                index === selectedIndex
+                  ? (elem.classList.add("pair_selected"), elem.scrollIntoView())
+                  : elem.classList.remove("pair_selected")
+            );
+          }
+        } else if (keyCode === 13) {
+          if (selectedIndex !== -1) {
+            const selectedPair = display.childNodes[selectedIndex].dataset.pair;
+            e.target.value = selectedPair;
+            selectedIndex = -1;
+            display.innerHTML = "";
+          } else {
+            addSymbolHandler(e);
+          }
+        } else {
+          appendPairsHtml(e);
+        }
+        // console.log(selectedIndex);
+      };
+    })()
+  );
+  function addSymbolHandler(e) {
+    if (!addInput.value) {
+      addInput.classList.add("bounce");
+      addInput.focus();
+      setTimeout(() => {
+        addInput.classList.remove("bounce");
+      }, 500);
+    } else {
+      const selectedValue = addInput.value;
+      const selectableValue = JSON.parse(adder.dataset.pairs);
+      addInput.value = "";
+      if (selectableValue.includes(selectedValue)) {
+        addSymbolDisappear(e);
+        if (!symbols.includes(selectedValue)) {
+          // debugger;
+          symbols.push(selectedValue);
+        }
+        fetchLatestPrice();
+      } else {
+        addInput.classList.add("bounce");
+        addInput.focus();
+        setTimeout(() => {
+          addInput.classList.remove("bounce");
+        }, 500);
+      }
+    }
+  }
+  document
+    .querySelector(".symbolAdder > button")
+    .addEventListener("click", addSymbolHandler);
+
+  let editingList = false;
+  document.querySelector("div.editWrapper").addEventListener(
+    "click",
+    (() => {
+      return e => {
+        const symbolBlocks = document.querySelectorAll("div.symbol-block");
+        Array.prototype.forEach.call(symbolBlocks, (elem, index) => {
+          if (editingList) {
+            setTimeout(() => elem.removeChild(elem.lastElementChild), 300);
+          } else {
+            const appendedDelBtn = document.createElement("div");
+            appendedDelBtn.innerHTML = "-";
+            appendedDelBtn.classList.add("delBtn");
+            elem.appendChild(appendedDelBtn);
+            // elem.style.flexShrink = "1";
+          }
+          elem.classList.toggle("flexShrink1");
+        });
+        editingList = !editingList;
+      };
+    })()
+  );
+  setTimeout(function inner(index = 0) {
+    // let index = index || 0
+    const priceLen = prices.length;
+    // console.log(priceLen, prices, index);
+    if (priceLen) {
+      ipcRenderer.send("price-update", prices[index]);
+    } else {
+      ipcRenderer.send("price-update", {
+        symbolName: "please add symbol",
+        last: 0
+      });
+    }
+    // console.log(index, priceLen);
+    setTimeout(inner, 5000, index >= priceLen - 1 ? 0 : ++index);
+  }, 5000);
 })();

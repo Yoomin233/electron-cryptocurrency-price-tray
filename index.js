@@ -35,8 +35,6 @@ const createTray = () => {
   });
 };
 
-
-
 const createWindow = () => {
   window = new BrowserWindow({
     width: 400,
@@ -103,4 +101,6 @@ ipcMain.on("show-window", () => {
   showWindow();
 });
 
-ipcMain.on("heheE", (e, data) => console.log(data));
+ipcMain.on("price-update", (e, data) => {
+  tray.setTitle(`${data.symbolName}:${Number(data.last).toPrecision(4)}`);
+});
