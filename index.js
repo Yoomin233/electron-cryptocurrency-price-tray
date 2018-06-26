@@ -27,11 +27,11 @@ const createTray = () => {
   tray.on("click", e => {
     toggleWindow();
     // console.log(process.defaultApp, e.metaKey)
-    window.openDevTools({
-      mode: "detach"
-    });
-    if (window.isVisible() && process.defaultApp && e.metaKey) {
-    }
+    // window.openDevTools({
+    //   mode: "detach"
+    // });
+    // if (window.isVisible() && process.defaultApp && e.metaKey) {
+    // }
   });
 };
 
@@ -101,6 +101,22 @@ ipcMain.on("show-window", () => {
   showWindow();
 });
 
+let ifShowInfo = true;
 ipcMain.on("price-update", (e, data) => {
-  tray.setTitle(`${data.symbolName}:${Number(data.last).toPrecision(4)}`);
+  ifShowInfo &&
+    tray.setTitle(`${data.symbolName}:${Number(data.last).toPrecision(4)}`);
+});
+
+ipcMain.on("signal-info-show", (e, ifShow) => {
+  if (ifShow) {
+    ifShowInfo = true;
+    tray.setTitle("waiting...");
+  } else {
+    tray.setTitle("");
+    ifShowInfo = false;
+  }
+});
+
+ipcMain.on("process_exit", e => {
+  process.exit();
 });

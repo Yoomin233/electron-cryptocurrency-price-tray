@@ -8,18 +8,22 @@ body {
   font-family: Roboto, -apple-system, BlinkMacSystemFont, "Helvetica Neue",
     "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", sans-serif;
 }
+
 *:focus {
   outline: none;
 }
+
 body {
   padding-top: 10px;
 }
+
 button {
   border: none;
   outline: none;
   color: inherit;
   background: inherit;
 }
+
 .mainWrapper {
   background: #eaeaea;
   width: 100%;
@@ -33,18 +37,23 @@ button {
   transition: color 0.3s ease, background 0.3s ease;
   opacity: 0.95;
   color: #444;
+  overflow-x: hidden;
 }
+
 .mainWrapper.darken {
   background: #1b1b1b;
   color: #d6d6d6;
 }
+
 .mainWrapper.darken .percentage {
   background-color: #33923a;
   color: #e6e6e6;
 }
+
 .mainWrapper.darken .symbolAdder {
   background: rgba(0, 0, 0, 0.8);
 }
+
 .mainWrapper::before {
   content: "";
   display: block;
@@ -58,41 +67,183 @@ button {
   background-color: inherit;
   transform: rotate(45deg);
 }
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 200%;
+  height: 100%;
+  /* background-color: #fff; */
+  z-index: 10;
+  opacity: 0.5;
+  /* padding: 10px; */
+  box-sizing: border-box;
+  display: none;
+  opacity: 0;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  /* display: flex; */
+  /* flex-direction: row; */
+  font-size: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.menu > * {
+  display: inline-block;
+  font-size: 12.8px;
+  vertical-align: top;
+  box-sizing: border-box;
+}
+.menu > .menuList {
+  width: 18%;
+  height: 100%;
+  padding: 15px;
+  padding-top: 25px;
+  background: #eaeaea;
+}
+.menu > .menuList > p {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+  /* display: flex; */
+}
+.mainWrapper.darken .menu > .menuList {
+  background-color: #1b1b1b;
+  color: inherit;
+}
+.menu > .menuShade {
+  width: 82%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.menu.showed {
+  transform: translateX(50%);
+  opacity: 1;
+}
+.controls,
 .header {
   padding: 10px;
-  padding-bottom: 0;
-  padding-top: 20px;
+  /* padding-bottom: 0; */
   display: flex;
   flex-direction: row;
   flex-shrink: 0;
+  justify-content: flex-end;
+  position: relative;
+  /* font-size: 1em; */
 }
+.controls > .menuWrapper {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 1096;
+}
+.controls > .menuWrapper > .menuIcon,
+.controls > .menuWrapper > .menuIcon::before,
+.controls > .menuWrapper > .menuIcon::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  position: absolute;
+  left: 0px;
+  top: calc(50% - 2px);
+  background: #444;
+  border-radius: 2px;
+}
+.mainWrapper.darken .controls > .menuWrapper > .menuIcon,
+.mainWrapper.darken .controls > .menuWrapper > .menuIcon::before,
+.mainWrapper.darken .controls > .menuWrapper > .menuIcon::after {
+  background: #d6d6d6;
+}
+.controls > .menuWrapper > .menuIcon::before,
+.controls > .menuWrapper > .menuIcon::after {
+  content: "";
+  top: -6px;
+  left: 0;
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0.1, 0, 1);
+}
+.controls > .menuWrapper > .menuIcon::after {
+  top: 6px;
+}
+.controls > .menuWrapper > .menuIcon.expanded::before {
+  transform: scaleX(0.5) translateY(2px) translateX(-10px) rotate(-0.08turn);
+}
+.controls > .menuWrapper > .menuIcon.expanded::after {
+  transform: scaleX(0.5) translateY(-2px) translateX(-10px) rotate(0.08turn);
+}
+.controls > p {
+  margin: 0;
+}
+
+.controls > p > * {
+  display: inline-block;
+}
+
+.controls > p > .add {
+  width: 1em;
+  height: 1em;
+  margin: 0 auto;
+  /* border: 1px solid black; */
+  text-align: center;
+  line-height: 0.7em;
+  font-size: 1em;
+  border-radius: 50%;
+  /* background-color: #35bd35; */
+  color: inherit;
+  font-weight: bold;
+  /* box-shadow: 0px 0px 2px gray; */
+  /*   transition: all 0.3s ease-in-out; */
+  cursor: pointer;
+  /* padding-top: 10px; */
+  /* margin-top: 10px; */
+  /* padding-top: 10px; */
+  vertical-align: super;
+  border: 1px solid rgba(117, 117, 117, 0.94);
+  box-sizing: border-box;
+  border-color: inherit;
+  font-weight: 500;
+}
+
+.header {
+  padding: 10px;
+  padding-top: 0;
+  border-bottom: 1px solid #ccc;
+}
+
 .header > * {
   flex-shrink: 0;
   font-size: 0.8em;
 }
+
 .header > *:nth-child(1) {
   width: 28%;
 }
+
 .header > *:nth-child(2) {
   width: 32%;
 }
+
 .header > *:nth-child(3) {
   width: 18%;
   text-align: right;
 }
+
 .header > *:nth-child(4) {
   width: 20%;
   text-align: right;
   margin-left: 2%;
 }
+
 .scrollable {
   /* height: 100%; */
   overflow-y: scroll;
   padding: 10px;
-  padding-top: 5px;
+  padding-top: 0px;
   box-sizing: border-box;
   flex-grow: 1;
 }
+
 .symbol-block {
   padding: 10px 0;
   display: flex;
@@ -100,15 +251,19 @@ button {
   border-bottom: 1px solid #cccccc;
   justify-content: space-between;
   overflow: hidden;
+  align-items: center;
 }
+
 .symbol-block > * {
   flex-shrink: 0;
   text-align: right;
   transition: flex 0.3s linear;
 }
+
 .flexShrink1 > * {
   flex-shrink: 1;
 }
+
 /* .flexShrink0 > * {
   flex-shrink: 0;
 } */
@@ -118,20 +273,29 @@ button {
   line-height: 2;
   text-align: left;
 }
+.symbol-name > span:last-child {
+  color: #949393;
+  font-size: 0.8em;
+  vertical-align: bottom;
+}
+
 .lowHigh {
   width: 32%;
   font-size: 0.7em;
   white-space: nowrap;
 }
+
 .lowHigh > p {
   margin: 0;
   text-align: left;
 }
+
 .last {
   width: 18%;
 }
+
 .percentage {
-  width: 20%;
+  width: 18%;
   margin-left: 2%;
   /*   margin- */
   /* font-family: monospace; */
@@ -139,39 +303,27 @@ button {
   background-color: #56ea61;
   text-align: center;
   color: #fff;
-  border-radius: 6px;
+  /* border-radius: 2px; */
   transition: all 0.3s ease;
   flex-shrink: 0;
+  height: 26px;
+  font-size: 13px;
+  letter-spacing: 0px;
 }
+
 .percentage.raise {
-  background-color: red;
+  background-color: #dc793d;
 }
+
 .mainWrapper.darken .percentage.raise {
   background-color: #c50606;
 }
+
 .last,
 .percentage {
   line-height: 2;
 }
-.add {
-  width: 1.5em;
-  height: 1.5em;
-  margin: 0 auto;
-  /* border: 1px solid black; */
-  text-align: center;
-  line-height: 1.5em;
-  font-size: 1.5em;
-  border-radius: 50%;
-  background-color: #35bd35;
-  color: #fff;
-  font-weight: bold;
-  box-shadow: 0px 0px 5px gray;
-  transition: all 0.3s ease-in-out;
-  cursor: pointer;
-  /* padding-top: 10px; */
-  margin-top: 10px;
-  /* padding-top: 10px; */
-}
+
 /* .add:hover {
   transform: translateY(2px);
 } */
@@ -182,6 +334,7 @@ button {
   justify-content: space-between;
   font-size: 0.8em;
 }
+
 .infoAndThettings > span:first-of-type > img {
   width: 15px;
   height: 15px;
@@ -191,13 +344,19 @@ button {
   animation-play-state: paused;
   cursor: pointer;
 }
+
 .infoAndThettings > span:first-of-type > img.spinning {
   animation-play-state: running;
 }
-.themeWrapper > input#themeChanger {
+.switchWrapper {
+  display: flex;
+  justify-content: space-between;
+}
+.switchWrapper > input {
   display: none;
 }
-.themeWrapper > span {
+
+.switchWrapper > span {
   width: 30px;
   height: 15px;
   display: inline-block;
@@ -209,8 +368,11 @@ button {
   background-color: inherit;
   transition: all 0.3s ease;
   box-shadow: 0 0 3px #a09f9f;
+  /* create shadow context */
+  z-index: 1;
 }
-.themeWrapper > span::before {
+
+.switchWrapper > span::before {
   width: 15px;
   content: "";
   height: 15px;
@@ -224,7 +386,8 @@ button {
   /* border: 1px solid black; */
   z-index: 2;
 }
-.themeWrapper > span::after {
+
+.switchWrapper > span::after {
   width: 30px;
   height: 15px;
   content: "";
@@ -239,12 +402,15 @@ button {
   transform: scale(0);
   transition: all 0.3s ease;
 }
-.themeWrapper > input:checked + span::before {
+
+.switchWrapper > input:checked + span::before {
   transform: translateX(15px);
 }
-.themeWrapper > input:checked + span::after {
+
+.switchWrapper > input:checked + span::after {
   transform: none;
 }
+
 .symbolAdder {
   position: absolute;
   left: 0;
@@ -266,11 +432,13 @@ button {
   border-radius: 5px;
   box-shadow: 0 0 2px #fff;
 }
+
 .symbolAdder.showed {
   transform: none;
   opacity: 1;
   /* display: block; */
 }
+
 .symbolAdder > p {
   margin: 0;
   display: flex;
@@ -281,10 +449,12 @@ button {
   border-bottom: 1px solid;
   border-color: inherit;
 }
+
 .addInputWrapper {
   text-align: center;
   position: relative;
 }
+
 .addInput {
   background: inherit;
   color: inherit;
@@ -296,6 +466,7 @@ button {
   text-align: center;
   border-radius: 5px;
 }
+
 .pairsDisplay {
   --selected-color: rgba(255, 255, 255, 0.3);
   width: 80%;
@@ -304,18 +475,21 @@ button {
   overflow-y: scroll;
   z-index: 1;
 }
+
 div.pairsDisplay > p {
   transition: background 0.3s ease-in-out;
   cursor: pointer;
   margin: 5px 0;
   padding: 5px 0;
 }
+
 /* div.pairsDisplay > p:hover {
   background-color: var(--selected-color);
 } */
 p.pair_selected {
   background-color: var(--selected-color);
 }
+
 .symbolAdder > button {
   width: 50%;
   padding: 5px 0;
@@ -329,6 +503,7 @@ p.pair_selected {
   left: 25%;
   bottom: 0;
 }
+
 .delBtn {
   width: 30px;
   height: 30px;
@@ -340,20 +515,93 @@ p.pair_selected {
   font-size: 2em;
   border-radius: 50%;
   margin-left: 10px;
-  background-color: red;
+  background-color: #de4f3e;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.editWrapper {
+  position: relative;
+  width: 1.7em;
+  height: 100%;
+  /* background-color: green; */
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+.editWrapper > span {
+  position: absolute;
+  background-color: inherit;
+  transition: opacity 0.3s linear;
+  opacity: 0;
+  cursor: pointer;
+  /* padding: 5px 10px; */
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  /* font-size: 12.8px; */
+  font-size: 0.8em;
+  line-height: 1.95em;
+}
+
+.editWrapper > span.showed {
+  /* position: absolute;
+  background-color: inherit;
+  transition: opacity .3s linear; */
+  opacity: 1;
+}
+
+.editList {
+  overflow: hidden;
+  z-index: 5;
+  /* margin-left: 10px; */
+}
+
+.editList > img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+  filter: drop-shadow(20px 0px 0 black);
+  transform: translateX(-20px);
+  vertical-align: sub;
+}
+
+.mainWrapper.darken .editList > img {
+  filter: drop-shadow(20px 0px 0 white);
+}
+.about {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  /* width: 100%; */
+  border: none;
+  color: #b3b3b3;
+  /* text-shadow: 0 0 1px gray; */
+  text-align: center;
+}
+.about > a {
+  text-decoration: none;
+  color: inherit;
+}
+.exit {
+  cursor: pointer;
+  text-align: center;
 }
 .bounce {
   animation: bounce 0.15s 2 linear;
 }
+
 @keyframes spin {
   to {
     transform: rotate(1turn);
   }
 }
+
 @keyframes bounce {
   25% {
     transform: translateX(-10px);
   }
+
   75% {
     transform: translateX(10px);
   }

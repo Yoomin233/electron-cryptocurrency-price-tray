@@ -1,4 +1,4 @@
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, shell } = require("electron");
 // const pako = require("pako");
 const fs = require("fs");
 const { throttle } = require("./tools");
@@ -11,15 +11,17 @@ const { throttle } = require("./tools");
 
   const mainWrapper = document.querySelector(".scrollable");
   const outerWrapper = document.querySelector("div.mainWrapper");
-  const themeCheckBox = document.querySelector("input#themeChanger");
   const themeSwitch = document.querySelector(".themeWrapper > span");
+  const themeCheckBox = document.querySelector(".switchWrapper > input");
+  const showInfoSwitch = document.querySelector(".showInfoSwitch > span");
+  const showInfoCheckBox = document.querySelector(".showInfoSwitch > input");
   const lastFetchedTime = document.querySelector(
     ".infoAndThettings > span:first-of-type > span"
   );
   const lastFetchImg = document.querySelector(
     ".infoAndThettings > span:first-of-type > img"
   );
-  const addSymbolButton = document.querySelector("div.add");
+  const addSymbolButton = document.querySelector(".controls > p > span.add");
   const adder = document.querySelector("div.symbolAdder");
   const addInput = document.querySelector("input.addInput");
 
@@ -27,6 +29,13 @@ const { throttle } = require("./tools");
   if (ifDarkend) {
     outerWrapper.classList.add("darken");
     themeCheckBox.checked = true;
+  }
+  const ifInfoShowed = localStorage.getItem("showInfo");
+  if (ifInfoShowed === "0") {
+    ipcRenderer.send("signal-info-show", false);
+    showInfoCheckBox.checked = false;
+  } else if (ifInfoShowed === "1") {
+    showInfoCheckBox.checked = true;
   }
   // if is fetching data...
   let fetching = false;
@@ -59,7 +68,7 @@ const { throttle } = require("./tools");
           : new Date().getSeconds()
       }`;
       renderToPage(data);
-      // prices = [];
+      prices = [];
       for (let [index, val] of data.entries()) {
         const thisSymbol = symbols[index];
         prices[index] = Object.assign({}, val, { symbolName: thisSymbol });
@@ -82,12 +91,19 @@ const { throttle } = require("./tools");
       if (!thisSymbolWrapper) {
         thisSymbolWrapper = document.createElement("div");
         thisSymbolWrapper.setAttribute("data-symbol", thisSymbol);
-        thisSymbolWrapper.setAttribute("class", "symbol-block");
+        thisSymbolWrapper.setAttribute(
+          "class",
+          `symbol-block ${editingList ? "flexShrink1" : ""}`
+        );
         mainWrapper.appendChild(thisSymbolWrapper);
       }
-      thisSymbolWrapper.innerHTML = `<div class='symbol-name'>${thisSymbol.toUpperCase()}</div><div class='lowHigh'><p>low:${Number(
-        val.low24hr
-      ).toFixed(4)}</p><p>high:${Number(val.high24hr).toFixed(
+      thisSymbolWrapper.innerHTML = `<div class='symbol-name'><span>${thisSymbol
+        .split("_")[0]
+        .toUpperCase()}</span><span>/${thisSymbol
+        .split("_")[1]
+        .toUpperCase()}</span></div><div class='lowHigh'><p>high:${Number(
+        val.high24hr
+      ).toFixed(4)}</p><p>low:${Number(val.low24hr).toFixed(
         4
       )}</p></div><div class='last'>${Number(val.last).toFixed(
         2
@@ -98,31 +114,6 @@ const { throttle } = require("./tools");
       ).toFixed(2)}%</div>${editingList ? "<div class='delBtn'>-</div>" : ""}`;
     }
   }
-
-  let fetchInterval = 10000;
-  let mainTimer = null;
-
-  fetchLatestPrice();
-  mainTimer = setTimeout(function inner() {
-    try {
-      fetchLatestPrice();
-      mainTimer = setTimeout(inner, fetchInterval);
-    } catch (e) {
-      // console.log(e);
-      mainTimer = setTimeout(inner, fetchInterval);
-    }
-  }, fetchInterval);
-
-  ipcRenderer.on("event-window-blur", e => {
-    // console.log("blured!");
-    fetchInterval = 300000;
-    // clearTimeout(mainTimer)
-  });
-
-  ipcRenderer.on("event-window-focus", e => {
-    // console.log("focus!");
-    fetchInterval = 5000;
-  });
 
   // change theme
 
@@ -143,6 +134,21 @@ const { throttle } = require("./tools");
     // }
   });
 
+  showInfoSwitch.addEventListener("click", e => {
+    // const ifDarkend = Array.prototype.includes.call(
+    //   outerWrapper.classList,
+    //   "darken"
+    // );
+    const ifInfoShowed = showInfoCheckBox.checked;
+    localStorage.setItem("showInfo", ifInfoShowed ? 0 : 1);
+    ipcRenderer.send("signal-info-show", !ifInfoShowed);
+    // if (!ifInfoShowed) {
+    // } else {
+    //   localStorage.removeItem("showInfo", 0);
+    //   ipcRenderer.send("signal-info-show", false);
+    // }
+    showInfoCheckBox.checked = !ifInfoShowed;
+  });
   // fetch now!
   lastFetchImg.addEventListener("click", e => {
     if (fetching) {
@@ -332,8 +338,8 @@ const { throttle } = require("./tools");
         if (!symbols.includes(selectedValue)) {
           // debugger;
           symbols.push(selectedValue);
+          fetchLatestPrice();
         }
-        fetchLatestPrice();
       } else {
         addInput.classList.add("bounce");
         addInput.focus();
@@ -347,10 +353,13 @@ const { throttle } = require("./tools");
     .querySelector(".symbolAdder > button")
     .addEventListener("click", addSymbolHandler);
 
+  // editing status
   let editingList = false;
-  document.querySelector("div.editWrapper").addEventListener(
+  document.querySelector("span.editWrapper").addEventListener(
     "click",
     (() => {
+      const editBtn = document.querySelector("span.editList");
+      const finishEditBtn = document.querySelector("span.finishEdit");
       return e => {
         const symbolBlocks = document.querySelectorAll("div.symbol-block");
         Array.prototype.forEach.call(symbolBlocks, (elem, index) => {
@@ -365,10 +374,80 @@ const { throttle } = require("./tools");
           }
           elem.classList.toggle("flexShrink1");
         });
+        // editBtn.classList.toggle("showed");
+        // setTimeout(() => finishEditBtn.classList.toggle("showed"), 400);
+        (editingList ? finishEditBtn : editBtn).classList.toggle("showed");
+        setTimeout(
+          (editing => () => {
+            (editing ? editBtn : finishEditBtn).classList.toggle("showed");
+            // console.log(editing);
+          })(editingList),
+          400
+        );
+        if (!editingList) {
+          clearTimeout(mainTimer);
+        } else {
+          setTimeout(mainProcess, fetchInterval);
+        }
         editingList = !editingList;
       };
     })()
   );
+
+  // del btn handler
+  mainWrapper.addEventListener("click", e => {
+    // del btn clicked
+    if (e.srcElement.classList.contains("delBtn")) {
+      const parent = e.target.parentElement;
+      const symbolName = parent.dataset.symbol;
+      parent.remove();
+      symbols.splice(symbols.indexOf(symbolName), 1);
+      // console.log(symbols);
+      localStorage.setItem("tokens_list", symbols);
+    }
+  });
+
+  // menu handling...
+  let menuExpanded = false;
+  document.querySelector("span.menuWrapper").addEventListener(
+    "click",
+    (() => {
+      const menuIcon = document.querySelector("span.menuIcon");
+      const menu = document.querySelector("div.menu");
+      const menuShade = document.querySelector("div.menuShade");
+      function toggleMenuStatus(e) {
+        menuIcon.classList.toggle("expanded");
+        if (!menuExpanded) {
+          menu.style.display = "block";
+        } else {
+          setTimeout(() => {
+            menu.style.display = "none";
+          }, 500);
+        }
+        requestAnimationFrame(() => {
+          menu.classList.toggle("showed");
+        });
+        menuExpanded = !menuExpanded;
+      }
+      menuShade.addEventListener("click", toggleMenuStatus);
+      return toggleMenuStatus;
+    })()
+  );
+
+  // shell to ext links...
+  document.querySelector("p.about").addEventListener("click", e => {
+    if (e.srcElement.tagName === "A") {
+      e.preventDefault();
+      // console.log("a!");
+      shell.openExternal(e.srcElement.href);
+    }
+  });
+
+  document.querySelector('p.exit').addEventListener('click', e => {
+    ipcRenderer.send('process_exit')
+  })
+
+  // send prices to tray
   setTimeout(function inner(index = 0) {
     // let index = index || 0
     const priceLen = prices.length;
@@ -384,4 +463,36 @@ const { throttle } = require("./tools");
     // console.log(index, priceLen);
     setTimeout(inner, 5000, index >= priceLen - 1 ? 0 : ++index);
   }, 5000);
+
+  // start main process
+  let fetchInterval = 5000;
+  let mainTimer = null;
+
+  fetchLatestPrice();
+  function mainProcess() {
+    try {
+      fetchLatestPrice();
+      mainTimer = setTimeout(mainProcess, fetchInterval);
+    } catch (e) {
+      // console.log(e);
+      mainTimer = setTimeout(mainProcess, fetchInterval);
+    }
+  }
+  mainProcess();
+  // mainTimer = setTimeout(function inner() {
+  // }, fetchInterval);
+
+  ipcRenderer.on("event-window-blur", e => {
+    // console.log("blured!");
+    clearTimeout(mainTimer);
+    fetchInterval = 30000;
+    mainProcess();
+  });
+
+  ipcRenderer.on("event-window-focus", e => {
+    // console.log("focus!");
+    clearTimeout(mainTimer);
+    fetchInterval = 5000;
+    mainProcess();
+  });
 })();

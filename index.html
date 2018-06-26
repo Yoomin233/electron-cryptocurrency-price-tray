@@ -11,6 +11,51 @@
 
 <body>
   <div class="mainWrapper">
+    <div class='menu'>
+      <div class="menuList">
+        <p>
+          <span class='themeWrapper switchWrapper'>
+            暗色主题:
+            <!-- <label for="themeChanger"></label> -->
+            <input type="checkbox">
+            <span></span>
+          </span>
+        </p>
+        <p>
+          <span class='showInfoSwitch switchWrapper'>
+            托盘区轮播:
+            <!-- <label for="themeChanger"></label> -->
+            <input type="checkbox">
+            <span></span>
+          </span>
+        </p>
+        <p class='exit'>退出程序</p>
+        <p class='about'>
+          <a>
+            Coin price monitor</a>
+          <br />
+          <a href="http://www.yoominhu.site/">By Hymin</a>
+          <br />
+          <a href="https://github.com/YueminHu/electron-cryptocurrency-price-tray">Github</a>
+        </p>
+      </div>
+      <div class="menuShade">
+      </div>
+    </div>
+    <div class='controls'>
+      <span class="menuWrapper">
+        <span class='menuIcon'></span>
+      </span>
+      <p>
+        <span class='add'>+</span>
+        <span class="editWrapper">
+          <span class='editList showed'>
+            <img src="assets/box_edit-512.png" alt="">
+          </span>
+          <span class='finishEdit'>完成</span>
+        </span>
+      </p>
+    </div>
     <div class='header'>
       <span>交易对</span>
       <span>24小时最高/最低</span>
@@ -18,22 +63,14 @@
       <span>24小时涨跌</span>
     </div>
     <div class="scrollable"></div>
-    <div class="add">+</div>
+    <!-- <div class="add">+</div> -->
     <!-- <div class="updateTime"></div> -->
     <div class='infoAndThettings'>
-      <span>最后更新:
+      <span>最后更新于
         <span></span>
         <img src="./assets/anticlockwise-downwards-and-upwards-open-circle-arrows_1f504.png" alt="">
       </span>
-      <span class='themeWrapper'>
-        暗色主题:
-        <!-- <label for="themeChanger"></label> -->
-        <input type="checkbox" name="theme" id="themeChanger">
-        <span></span>
-      </span>
-      <div class="editWrapper">
-        <button class='editList'>编辑</button>
-      </div>
+
     </div>
     <div class="symbolAdder" style='display: none;'>
       <p>
@@ -41,7 +78,7 @@
         <span>X</span>
       </p>
       <div class="addInputWrapper">
-        <input class='addInput' type="text" placeholder="请输入交易对名称">
+        <input class='addInput' type="text" placeholder="交易对(如:eos_usdt)">
         <div class="pairsDisplay"></div>
       </div>
       <button>确定</button>
