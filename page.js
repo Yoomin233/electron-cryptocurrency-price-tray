@@ -101,9 +101,9 @@ const { throttle } = require("./tools");
         .split("_")[0]
         .toUpperCase()}</span><span>/${thisSymbol
         .split("_")[1]
-        .toUpperCase()}</span></div><div class='lowHigh'><p>high:${Number(
+        .toUpperCase()}</span></div><div class='lowHigh'><p class="pricemore">${Number(
         val.high24hr
-      ).toFixed(4)}</p><p>low:${Number(val.low24hr).toFixed(
+      ).toFixed(4)}</p><p class="pricesmall">${Number(val.low24hr).toFixed(
         4
       )}</p></div><div class='last'>${Number(val.last).toFixed(
         2
@@ -443,9 +443,9 @@ const { throttle } = require("./tools");
     }
   });
 
-  document.querySelector('p.exit').addEventListener('click', e => {
-    ipcRenderer.send('process_exit')
-  })
+  document.querySelector("p.exit").addEventListener("click", e => {
+    ipcRenderer.send("process_exit");
+  });
 
   // send prices to tray
   setTimeout(function inner(index = 0) {
