@@ -7,10 +7,14 @@ body {
   box-sizing: border-box;
   font-family: Roboto, -apple-system, BlinkMacSystemFont, "Helvetica Neue",
     "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", sans-serif;
+  user-select: none;
 }
 
 *:focus {
   outline: none;
+}
+* {
+  user-select: none;
 }
 
 body {
@@ -105,6 +109,7 @@ button {
   border-bottom: 1px solid #ccc;
   padding-bottom: 10px;
   /* display: flex; */
+  box-shadow: 0 1px 0 0 white;
 }
 .mainWrapper.darken .menu > .menuList {
   background-color: #1b1b1b;
@@ -143,11 +148,11 @@ button {
 .controls > .menuWrapper > .menuIcon::after {
   display: block;
   width: 18px;
-  height: 2px;
+  height: 1px;
   position: absolute;
   left: 0px;
   top: calc(50% - 2px);
-  background: #444;
+  background: rgba(169, 166, 166, 0.94);
   border-radius: 2px;
 }
 .mainWrapper.darken .controls > .menuWrapper > .menuIcon,
@@ -216,9 +221,10 @@ button {
   padding: 10px;
   padding-top: 0;
   /* border-bottom: 1px solid #d3d3d3; */
-  color: #c3c3c3;
+  color: #868585;
   font-size: 13px;
   font-weight: 400;
+  padding-bottom: 0;
 }
 
 .header > * {
@@ -252,6 +258,7 @@ button {
   padding-top: 0px;
   box-sizing: border-box;
   flex-grow: 1;
+  position: relative;
 }
 
 .symbol-block {
@@ -262,13 +269,18 @@ button {
   justify-content: space-between;
   overflow: hidden;
   align-items: center;
-  border-top: 1px solid #fff;
+  /* border-top: 1px solid #fff; */
+  box-shadow: 0 1px 0 0 #fff;
+  width: 380px;
+  /* box-sizing: border-box; */
 }
 .symbol-block:first-child {
-  border-top: none;
+  /* border-top: none; */
 }
 .symbol-block:last-child {
-  border-bottom: none;
+  /* border-bottom: none; */
+  /* position: absolute; */
+  /* width: 100%; */
 }
 
 .symbol-block > * {
@@ -291,7 +303,7 @@ button {
   text-align: left;
 }
 .symbol-name > span:last-child {
-  color: #949393;
+  color: #868585;
   font-size: 0.8em;
   vertical-align: bottom;
   font-size: 10px;
@@ -301,6 +313,7 @@ button {
   width: 32%;
   font-size: 0.7em;
   white-space: nowrap;
+  color: #868585;
 }
 
 .lowHigh > p {
@@ -313,11 +326,11 @@ button {
   width: 14px;
 }
 .pricemore {
-  color: #a3a3a3;
+  /* color: #868585; */
   font-size: 12px;
 }
 .pricesmall {
-  color: #a3a3a3;
+  /* color: #a3a3a3; */
   font-size: 12px;
 }
 .last {
@@ -535,21 +548,70 @@ p.pair_selected {
   left: 25%;
   bottom: 0;
 }
-
+.controlWrapper {
+  width: 65px;
+  text-align: center;
+  padding-left: 5px;
+  white-space: nowrap;
+}
+.controlWrapper > span {
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  cursor: pointer;
+}
 .delBtn {
   width: 30px;
   height: 30px;
   flex-shrink: 0;
   display: inline-block;
   vertical-align: middle;
-  line-height: 25px;
+  line-height: 16px;
   text-align: center;
   font-size: 2em;
   border-radius: 50%;
-  margin-left: 10px;
+  margin-right: 6px;
   background-color: #de4f3e;
   cursor: pointer;
   color: #ccc;
+}
+.controlWrapper > .dragBtn {
+  /*   width: 30px;
+  height: 30px; */
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  background: linear-gradient(
+    to bottom,
+    transparent 3px,
+    #fff 3px,
+    #fff 5px,
+    transparent 5px,
+    transparent 9.5px,
+    #999 9.5px,
+    #999 10.5px,
+    transparent 10.5px,
+    transparent 20px
+  );
+}
+
+.controlWrapper > .dragBtn::before,
+.controlWrapper > .dragBtn::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 20px;
+  height: 1px;
+  background-color: #999;
+  left: 0;
+}
+.controlWrapper > .dragBtn::before {
+  top: 3px;
+}
+.controlWrapper > .dragBtn::after {
+  bottom: 3px;
 }
 
 .editWrapper {
@@ -573,7 +635,7 @@ p.pair_selected {
   text-align: center;
   /* font-size: 12.8px; */
   font-size: 0.8em;
-  line-height: 1.95em;
+  line-height: 1.55em;
 }
 
 .editWrapper > span.showed {

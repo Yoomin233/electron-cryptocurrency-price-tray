@@ -111,7 +111,11 @@ const { throttle } = require("./tools");
         Number(val.percentChange) >= 0 ? "percentage raise" : "percentage"
       }">${val.percentChange >= 0 ? "+" : ""}${Number(
         val.percentChange
-      ).toFixed(2)}%</div>${editingList ? "<div class='delBtn'>-</div>" : ""}`;
+      ).toFixed(2)}%</div>${
+        editingList
+          ? "<div class='controlWrapper'><span class='delBtn'>-</span><span class='dragBtn'></span></div>"
+          : ""
+      }`;
     }
   }
 
@@ -364,12 +368,22 @@ const { throttle } = require("./tools");
         const symbolBlocks = document.querySelectorAll("div.symbol-block");
         Array.prototype.forEach.call(symbolBlocks, (elem, index) => {
           if (editingList) {
-            setTimeout(() => elem.removeChild(elem.lastElementChild), 300);
+            setTimeout(() => {
+              // elem.removeChild(elem.childNodes[4]);
+              elem.removeChild(elem.lastElementChild);
+            }, 300);
           } else {
-            const appendedDelBtn = document.createElement("div");
-            appendedDelBtn.innerHTML = "-";
-            appendedDelBtn.classList.add("delBtn");
-            elem.appendChild(appendedDelBtn);
+            const controlWrapper = document.createElement("div");
+            controlWrapper.innerHTML = `<span class='delBtn'>-</span><span class='dragBtn'></span>`;
+            controlWrapper.classList.add("controlWrapper");
+            // controlWrapper.classList.add("delBtn");
+            elem.appendChild(controlWrapper);
+
+            // move element
+            // const moveDragBtn = document.createElement("div");
+            // moveDragBtn.classList.add("dragBtn");
+            // moveDragBtn.innerHTML = "hehda";
+            // elem.appendChild(moveDragBtn);
             // elem.style.flexShrink = "1";
           }
           elem.classList.toggle("flexShrink1");
@@ -394,11 +408,11 @@ const { throttle } = require("./tools");
     })()
   );
 
-  // del btn handler
+  // del  and grap&drop btn handler
   mainWrapper.addEventListener("click", e => {
     // del btn clicked
     if (e.srcElement.classList.contains("delBtn")) {
-      const parent = e.target.parentElement;
+      const parent = e.target.parentElement.parentElement;
       const symbolName = parent.dataset.symbol;
       parent.remove();
       symbols.splice(symbols.indexOf(symbolName), 1);
@@ -406,6 +420,75 @@ const { throttle } = require("./tools");
       localStorage.setItem("tokens_list", symbols);
     }
   });
+  mainWrapper.addEventListener(
+    "mousedown",
+    (() => {
+      const mainWrapperTop = mainWrapper.getBoundingClientRect().top;
+      let blockDimension;
+      const blockCount = mainWrapper.childElementCount;
+      let placeHoderDiv;
+      let draggedBlock;
+      let draggedBlockIndex;
+      let mouseDragStartingY;
+      // let mouseDragStartingY;
+      mainWrapper.addEventListener("mousemove", e => {
+        if (draggedBlock) {
+          // console.log(e, draggedBlock);
+          // draggedmouseDragStartingY = draggedBlock.getBoundingClientRect();
+          // change draggedElem position
+          const draggedDistance = e.clientY - mouseDragStartingY;
+          draggedBlock.style.top = `${draggedBlockIndex *
+            blockDimension.height +
+            draggedDistance}px`;
+          // change placeholder div position
+          // console.log(draggedDistance);
+          const draggedBlockCount =
+            draggedDistance > 0
+              ? Math.floor(draggedDistance / blockDimension.height)
+              : Math.ceil(draggedDistance / blockDimension.height);
+          console.log(draggedBlockCount);
+          // if ()
+        }
+      });
+      mainWrapper.addEventListener("mouseup", e => {
+        if (draggedBlock) {
+          draggedBlock.style.position = "";
+          draggedBlock.style.top = "";
+          draggedBlock = null;
+          mainWrapper.removeChild(placeHoderDiv);
+        }
+      });
+      return e => {
+        // console.log(e);
+        if (e.srcElement.classList.contains("dragBtn")) {
+          draggedBlock = e.target.parentElement.parentElement;
+          blockDimension = draggedBlock.getBoundingClientRect();
+          // record starting pos
+          // draggedBlock = draggedBlock;
+          draggedBlockIndex = Array.prototype.indexOf.call(
+            mainWrapper.childNodes,
+            draggedBlock
+          );
+          // draggedStartingTop = draggedBlock.getBoundingClientRect().top;
+          mouseDragStartingY = e.clientY;
+
+          // create placeholder div
+          placeHoderDiv = document.createElement("div");
+          placeHoderDiv.setAttribute("style", "width: 100%;height: 53px");
+          draggedBlock.parentElement.insertBefore(
+            placeHoderDiv,
+            draggedBlock.nextElementSibling
+          );
+
+          draggedBlock.style.position = "absolute";
+          // draggedBlock.style.left = "10px";
+          // draggedBlock.style.top = "130px";
+          // mainWrapper.appendChild(parentBlock);
+          // console.log(draggedStartingTop, startingTop);
+        }
+      };
+    })()
+  );
 
   // menu handling...
   let menuExpanded = false;
@@ -486,7 +569,7 @@ const { throttle } = require("./tools");
     // console.log("blured!");
     clearTimeout(mainTimer);
     fetchInterval = 30000;
-    mainProcess();
+    // mainProcess();
   });
 
   ipcRenderer.on("event-window-focus", e => {
