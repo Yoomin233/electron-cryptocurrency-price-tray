@@ -181,34 +181,44 @@ button {
 }
 
 .controls > p > .add {
-  width: 1em;
+  /* width: 1em;
   height: 1em;
-  margin: 0 auto;
+  margin: 0 auto; */
   /* border: 1px solid black; */
-  text-align: center;
+  /* text-align: center;
   line-height: 0.7em;
   font-size: 1em;
-  border-radius: 50%;
+  border-radius: 50%; */
   /* background-color: #35bd35; */
-  color: inherit;
-  font-weight: bold;
+  /* color: inherit;
+  font-weight: bold; */
   /* box-shadow: 0px 0px 2px gray; */
   /*   transition: all 0.3s ease-in-out; */
   cursor: pointer;
   /* padding-top: 10px; */
   /* margin-top: 10px; */
   /* padding-top: 10px; */
-  vertical-align: super;
+  /* vertical-align: super;
   border: 1px solid rgba(117, 117, 117, 0.94);
   box-sizing: border-box;
   border-color: inherit;
-  font-weight: 500;
+  font-weight: 500; */
+  width: 12px;
+  position: relative;
+  top: -2px;
+  left: 5px;
 }
 
+.controls > p > .add img {
+  width: 100%;
+}
 .header {
   padding: 10px;
   padding-top: 0;
-  border-bottom: 1px solid #ccc;
+  /* border-bottom: 1px solid #d3d3d3; */
+  color: #c3c3c3;
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .header > * {
@@ -252,6 +262,13 @@ button {
   justify-content: space-between;
   overflow: hidden;
   align-items: center;
+  border-top: 1px solid #fff;
+}
+.symbol-block:first-child {
+  border-top: none;
+}
+.symbol-block:last-child {
+  border-bottom: none;
 }
 
 .symbol-block > * {
@@ -277,6 +294,7 @@ button {
   color: #949393;
   font-size: 0.8em;
   vertical-align: bottom;
+  font-size: 10px;
 }
 
 .lowHigh {
@@ -289,7 +307,19 @@ button {
   margin: 0;
   text-align: left;
 }
-
+.lowHigh p b {
+  font-weight: normal;
+  display: inline-block;
+  width: 14px;
+}
+.pricemore {
+  color: #a3a3a3;
+  font-size: 12px;
+}
+.pricesmall {
+  color: #a3a3a3;
+  font-size: 12px;
+}
 .last {
   width: 18%;
 }
@@ -300,7 +330,7 @@ button {
   /*   margin- */
   /* font-family: monospace; */
   box-sizing: border-box;
-  background-color: #56ea61;
+  background-color: #109c1b;
   text-align: center;
   color: #fff;
   /* border-radius: 2px; */
@@ -333,6 +363,8 @@ button {
   flex-direction: row;
   justify-content: space-between;
   font-size: 0.8em;
+  color: #b3b3b3;
+  font-size: 12px;
 }
 
 .infoAndThettings > span:first-of-type > img {

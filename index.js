@@ -27,9 +27,9 @@ const createTray = () => {
   tray.on("click", e => {
     toggleWindow();
     // console.log(process.defaultApp, e.metaKey)
-    // window.openDevTools({
-    //   mode: "detach"
-    // });
+    window.openDevTools({
+      mode: "detach"
+    });
     // if (window.isVisible() && process.defaultApp && e.metaKey) {
     // }
   });
