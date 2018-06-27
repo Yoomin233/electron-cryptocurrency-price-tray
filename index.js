@@ -20,7 +20,7 @@ app.on("window-all-closed", () => {
 });
 
 const createTray = () => {
-  tray = new Tray(path.join(__dirname, "./assets/btc1.png"));
+  tray = new Tray(path.join(__dirname, "./assets/bitcoin_w_small.png"));
   // tray.setTitle("hhehda");
   tray.on("right-click", toggleWindow);
   tray.on("double-click", toggleWindow);
