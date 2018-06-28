@@ -14,7 +14,7 @@ body {
   outline: none;
 }
 * {
-  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
@@ -26,6 +26,25 @@ button {
   outline: none;
   color: inherit;
   background: inherit;
+  transition: box-shadow 0.3s linear;
+}
+input {
+  background: inherit;
+  color: inherit;
+  outline: none;
+  border: none;
+  font-size: 1em;
+  padding: 5px;
+  border: 1px solid rgba(162, 162, 162, 0.94);
+  text-align: center;
+  border-radius: 5px;
+  width: 8em;
+  transition: box-shadow 0.3s linear;
+  box-sizing: border-box;
+}
+input:focus,
+button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .mainWrapper {
@@ -181,8 +200,24 @@ button {
   margin: 0;
 }
 
-.controls > p > * {
+.controls > p > span {
   display: inline-block;
+  /* width: 18px; */
+  height: 18px;
+  vertical-align: bottom;
+  text-align: center;
+  cursor: pointer;
+}
+.controls > p > span.icon {
+  width: 1.7em;
+  height: 18px;
+  text-align: center;
+  /* margin-left: 10px; */
+}
+
+.controls > p > span > img {
+  height: 12px;
+  vertical-align: baseline;
 }
 
 .controls > p > .add {
@@ -199,7 +234,7 @@ button {
   font-weight: bold; */
   /* box-shadow: 0px 0px 2px gray; */
   /*   transition: all 0.3s ease-in-out; */
-  cursor: pointer;
+  /* cursor: pointer; */
   /* padding-top: 10px; */
   /* margin-top: 10px; */
   /* padding-top: 10px; */
@@ -208,14 +243,14 @@ button {
   box-sizing: border-box;
   border-color: inherit;
   font-weight: 500; */
-  width: 12px;
+  width: 1.7em;
   position: relative;
-  top: -2px;
-  left: 5px;
+  /* top: -2px; */
+  /* left: 5px; */
 }
 
 .controls > p > .add img {
-  width: 100%;
+  height: 12px;
 }
 .header {
   padding: 10px;
@@ -259,6 +294,7 @@ button {
   box-sizing: border-box;
   flex-grow: 1;
   position: relative;
+  background-color: inherit;
 }
 
 .symbol-block {
@@ -273,6 +309,7 @@ button {
   box-shadow: 0 1px 0 0 #fff;
   width: 380px;
   /* box-sizing: border-box; */
+  background-color: inherit;
 }
 .symbol-block:first-child {
   /* border-top: none; */
@@ -463,8 +500,8 @@ button {
   bottom: 0;
   right: 0;
   width: 300px;
-  height: 250px;
-  background: rgba(218, 218, 218, 0.95);
+  max-height: 220px;
+  background-color: inherit;
   transition: transform 0.4s cubic-bezier(0.4, 0.1, 0, 1),
     opacity 0.4s cubic-bezier(0.4, 0.1, 0, 1);
   /* transform: translateY(500px); */
@@ -473,15 +510,16 @@ button {
   opacity: 0;
   padding: 10px;
   box-sizing: border-box;
-  /* display: none; */
-  border-radius: 5px;
-  box-shadow: 0 0 2px #fff;
+  display: none;
+  border-radius: 2px;
+  /* box-shadow: 0 0 2px #fff; */
+  border: 1px solid rgba(207, 207, 207, 0.94);
+  /* margin: auto; */
 }
 
 .symbolAdder.showed {
   transform: none;
   opacity: 1;
-  /* display: block; */
 }
 
 .symbolAdder > p {
@@ -492,34 +530,76 @@ button {
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid;
-  border-color: inherit;
+  border-color: rgba(204, 204, 204, 0.94);
+  box-shadow: 0 1px 0 0 #fff;
 }
 
-.addInputWrapper {
+.symbolAdder > p > span:last-child {
+  cursor: pointer;
+  font-family: inherit;
+  /* font-size: 1.5em; */
+  transform: scaleX(1.3);
+  color: rgba(173, 173, 173, 0.94);
+}
+.symbolAdder > p > span:last-child:hover {
+  color: rgba(136, 136, 136, 0.94);
+}
+
+.inputWrapper {
   text-align: center;
   position: relative;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.inputWrapper > p:first-child {
+  font-size: 12.8px;
+  text-align: left;
+  width: 60%;
+  margin: 0;
+}
+.inputWrapper > p:first-child > span {
+  display: block;
+}
+.inputWrapper > p:first-child > span:last-child {
+  font-size: 10.4px;
+  color: #868585;
 }
 
-.addInput {
-  background: inherit;
+.inputWrapper > .input {
+  /* background: inherit;
   color: inherit;
   outline: none;
   border: none;
-  font-size: 1.2em;
+  font-size: 1em;
   padding: 5px 15px;
   border: 1px solid #888;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 2px;
+  width: 8em; */
+  width: 35%;
 }
 
 .pairsDisplay {
-  --selected-color: rgba(255, 255, 255, 0.3);
-  width: 80%;
+  --selected-color: #868585;
+  width: 35%;
   margin: auto;
   max-height: 120px;
   overflow-y: scroll;
   z-index: 1;
+  position: absolute;
+  /* left: 0; */
+  right: 0;
+  top: 33px;
+  background-color: rgba(234, 234, 234, 0.94);
+  border: 1px solid rgba(171, 171, 172, 0.94);
+  border-radius: 5px;
+  border-top: none;
+  display: none;
 }
+
+/* .pairsDisplay {} */
 
 div.pairsDisplay > p {
   transition: background 0.3s ease-in-out;
@@ -538,15 +618,27 @@ p.pair_selected {
 .symbolAdder > button {
   width: 50%;
   padding: 5px 0;
-  font-size: 1.1em;
+  font-size: 1em;
   border-radius: 5px;
   margin: 10px auto;
   background-color: #35bd35;
+  background-image: linear-gradient(
+    transparent,
+    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0.05)
+  );
   color: #fff;
   cursor: pointer;
   position: absolute;
   left: 25%;
   bottom: 0;
+}
+.symbolAdder > button:hover {
+  background-image: linear-gradient(
+    transparent,
+    rgba(0, 0, 0, 0.05) 40%,
+    rgba(0, 0, 0, 0.1)
+  );
 }
 .controlWrapper {
   width: 65px;
@@ -620,7 +712,7 @@ p.pair_selected {
   height: 100%;
   /* background-color: green; */
   border-radius: 10px;
-  margin-left: 5px;
+  /* margin-left: 5px; */
 }
 
 .editWrapper > span {
@@ -636,6 +728,7 @@ p.pair_selected {
   /* font-size: 12.8px; */
   font-size: 0.8em;
   line-height: 1.55em;
+  left: 0;
 }
 
 .editWrapper > span.showed {

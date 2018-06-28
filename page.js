@@ -3,11 +3,17 @@ const { ipcRenderer, shell } = require("electron");
 const fs = require("fs");
 const { throttle } = require("./tools");
 (function() {
+  // datas
   let symbols =
     (localStorage.getItem("tokens_list") &&
       localStorage.getItem("tokens_list").split(",")) ||
     [];
   let prices = [];
+  let lastFetchPrice = [];
+  let alerts =
+    (localStorage.getItem("alerts") &&
+      JSON.parse(localStorage.getItem("alerts"))) ||
+    {};
 
   const mainWrapper = document.querySelector(".scrollable");
   const outerWrapper = document.querySelector("div.mainWrapper");
@@ -42,7 +48,7 @@ const { throttle } = require("./tools");
 
   function fetchLatestPrice() {
     let promiseArr = [];
-    lastFetchImg.classList.add("spin");
+    lastFetchImg.classList.add("spinning");
     localStorage.setItem("tokens_list", symbols);
     for (let i of symbols) {
       promiseArr.push(
@@ -53,28 +59,39 @@ const { throttle } = require("./tools");
     }
     // return new Promise((resolve, reject))
     return Promise.all(promiseArr).then(data => {
-      // console.log(data);
-      lastFetchedTime.innerHTML = `${
-        new Date().getHours() < 10
-          ? "0" + new Date().getHours()
-          : new Date().getHours()
-      }:${
-        new Date().getMinutes() < 10
-          ? "0" + new Date().getMinutes()
-          : new Date().getMinutes()
-      }:${
-        new Date().getSeconds() < 10
-          ? "0" + new Date().getSeconds()
-          : new Date().getSeconds()
-      }`;
       renderToPage(data);
+      lastFetchPrice = prices;
       prices = [];
       for (let [index, val] of data.entries()) {
         const thisSymbol = symbols[index];
         prices[index] = Object.assign({}, val, { symbolName: thisSymbol });
       }
       // console.log(prices);
-      lastFetchedTime.classList.remove("spin");
+      lastFetchImg.classList.remove("spinning");
+      // detect price alerts
+      // console.log(alerts, lastFetchPrice, prices);
+      for (let symbol in alerts) {
+        const params = alerts[symbol];
+        const lastCheckedPrice = lastFetchPrice.filter(
+          priceRecord => priceRecord.symbolName === symbol
+        )[0];
+        const latestPrice = prices.filter(
+          priceRecord => priceRecord.symbolName === symbol
+        )[0];
+        // console.log(params, lastCheckedPrice, latestPrice);
+        if (lastCheckedPrice && latestPrice) {
+          const alertPrice = Number(params.price);
+          const lastPrice = Number(lastCheckedPrice.last);
+          const nowPrice = Number(latestPrice.last);
+          if (
+            (nowPrice > alertPrice && lastPrice < alertPrice) ||
+            (nowPrice < alertPrice && lastPrice > alertPrice) ||
+            nowPrice === alertPrice
+          ) {
+            new Notification(`${symbol} price achieved! latestPrice: ${nowPrice}`)
+          }
+        }
+      }
       return data;
     });
     // console.log(resps);
@@ -83,6 +100,19 @@ const { throttle } = require("./tools");
   // mainWrapper.
 
   function renderToPage(dataArr) {
+    lastFetchedTime.innerHTML = `${
+      new Date().getHours() < 10
+        ? "0" + new Date().getHours()
+        : new Date().getHours()
+    }:${
+      new Date().getMinutes() < 10
+        ? "0" + new Date().getMinutes()
+        : new Date().getMinutes()
+    }:${
+      new Date().getSeconds() < 10
+        ? "0" + new Date().getSeconds()
+        : new Date().getSeconds()
+    }`;
     for (let [index, val] of dataArr.entries()) {
       const thisSymbol = symbols[index];
       let thisSymbolWrapper = document.querySelector(
@@ -159,36 +189,62 @@ const { throttle } = require("./tools");
       return;
     }
     fetching = true;
-    e.target.classList.add("spinning");
+    // e.target.classList.add("spinning");
     fetchLatestPrice().then(data => {
       fetching = false;
-      e.target.classList.remove("spinning");
+      // e.target.classList.remove("spinning");
     });
   });
 
+  let addMode;
+  const showAdder = (() => {
+    const adderTitle = adder.querySelector("p:first-child > span:first-child");
+    const priceInputWrapper = adder.querySelector(".priceInputWrapper");
+    const priceInput = adder.querySelector(".priceInput");
+
+    return (e, mode) => {
+      if (document.activeElement === adder) {
+        return;
+      }
+      if (mode === "alert") {
+        adderTitle.innerHTML = "增加价格通知";
+        priceInputWrapper.style.display = "flex";
+      } else {
+        adderTitle.innerHTML = "增加交易对";
+        priceInputWrapper.style.display = "none";
+      }
+      adder.style.display = "block";
+      // requestAnimationFrame(() => {
+      //   adder.classList.add("showed");
+      //   addInput.focus();
+      // });
+      setTimeout(() => {
+        adder.classList.add("showed");
+        addInput.focus();
+      }, 50);
+      if (!adder.dataset.pairs) {
+        fetch("https://data.gateio.io/api2/1/pairs")
+          .then(data => data.json())
+          .then(data => {
+            adder.dataset.pairs = JSON.stringify(
+              data
+                // .filter(pair => /USDT/.test(pair))
+                .map(pair => pair.toLowerCase())
+            );
+          });
+      }
+    };
+  })();
   // add symbol appear
   addSymbolButton.addEventListener("click", e => {
-    if (document.activeElement === adder) {
-      return;
-    }
-    adder.style.display = "block";
-    requestAnimationFrame(() => {
-      adder.classList.add("showed");
-      addInput.focus();
-    });
-    // setTimeout(() => {
-    // }, 0);
-    if (!adder.dataset.pairs) {
-      fetch("https://data.gateio.io/api2/1/pairs")
-        .then(data => data.json())
-        .then(data => {
-          adder.dataset.pairs = JSON.stringify(
-            data
-              // .filter(pair => /USDT/.test(pair))
-              .map(pair => pair.toLowerCase())
-          );
-        });
-    }
+    addMode = "token";
+    showAdder(e, addMode);
+  });
+
+  // add price alert button
+  document.querySelector("span.alarm").addEventListener("click", e => {
+    addMode = "alert";
+    showAdder(e, addMode);
   });
 
   // add symbol disappear
@@ -198,6 +254,10 @@ const { throttle } = require("./tools");
 
   function addSymbolDisappear(e) {
     adder.classList.remove("showed");
+    addInput.value = "";
+    addInput.blur();
+    adder.querySelector("input.priceInput").value = "";
+    adder.querySelector("input.priceInput").blur();
     setTimeout(() => {
       adder.style.display = "none";
     }, 500);
@@ -252,6 +312,7 @@ const { throttle } = require("./tools");
           // console.log(selectedPair);
           addInput.value = selectedPair;
           selectedIndex = -1;
+          display.style.display = "none";
           display.innerHTML = "";
         }
       });
@@ -259,6 +320,7 @@ const { throttle } = require("./tools");
         // console.log(e);
         setTimeout(() => {
           selectedIndex = -1;
+          display.style.display = "none";
           display.innerHTML = "";
         }, 200);
       });
@@ -275,6 +337,7 @@ const { throttle } = require("./tools");
             .filter(pair => pair.match(e.target.value))
             .map(pair => `<p data-pair=${pair}>${pair}</p>`)
             .join("");
+          display.style.display = "block";
           display.innerHTML = pairListHTML;
         }
         selectedIndex = -1;
@@ -282,6 +345,7 @@ const { throttle } = require("./tools");
       return e => {
         if (!e.target.value) {
           display.innerHTML = "";
+          display.style.display = "none";
           return;
         }
         const { keyCode } = e;
@@ -295,7 +359,9 @@ const { throttle } = require("./tools");
             displayChildren.forEach(
               (elem, index) =>
                 index === selectedIndex
-                  ? (elem.classList.add("pair_selected"), elem.scrollIntoView())
+                  ? (elem.classList.add("pair_selected"),
+                    elem.scrollIntoView(),
+                    (addInput.value = elem.dataset.pair))
                   : elem.classList.remove("pair_selected")
             );
           }
@@ -306,7 +372,9 @@ const { throttle } = require("./tools");
             displayChildren.forEach(
               (elem, index) =>
                 index === selectedIndex
-                  ? (elem.classList.add("pair_selected"), elem.scrollIntoView())
+                  ? (elem.classList.add("pair_selected"),
+                    elem.scrollIntoViewIfNeeded(),
+                    (addInput.value = elem.dataset.pair))
                   : elem.classList.remove("pair_selected")
             );
           }
@@ -315,6 +383,7 @@ const { throttle } = require("./tools");
             const selectedPair = display.childNodes[selectedIndex].dataset.pair;
             e.target.value = selectedPair;
             selectedIndex = -1;
+            display.style.display = "none";
             display.innerHTML = "";
           } else {
             addSymbolHandler(e);
@@ -327,30 +396,51 @@ const { throttle } = require("./tools");
     })()
   );
   function addSymbolHandler(e) {
-    if (!addInput.value) {
-      addInput.classList.add("bounce");
-      addInput.focus();
+    function inputBounce(elem) {
+      elem.classList.add("bounce");
+      elem.focus && elem.focus();
       setTimeout(() => {
-        addInput.classList.remove("bounce");
+        elem.classList.remove("bounce");
       }, 500);
+    }
+    if (!addInput.value) {
+      return inputBounce(addInput);
     } else {
       const selectedValue = addInput.value;
       const selectableValue = JSON.parse(adder.dataset.pairs);
-      addInput.value = "";
-      if (selectableValue.includes(selectedValue)) {
+      const selectedAlertPrice = adder.querySelector("input.priceInput");
+      if (!selectableValue.includes(selectedValue)) {
+        addInput.value = "";
+        return inputBounce(addInput);
+      }
+      if (addMode === "alert") {
+        // if (selectableValue.includes(selectedValue))
+        if (!selectedAlertPrice.value || selectedAlertPrice.value <= 0) {
+          return inputBounce(selectedAlertPrice);
+        }
+        alerts[selectedValue] = {
+          price: selectedAlertPrice.value,
+          persist: true
+        };
+        localStorage.setItem("alerts", JSON.stringify(alerts));
+        addSymbolDisappear();
+      } else {
         addSymbolDisappear(e);
         if (!symbols.includes(selectedValue)) {
           // debugger;
           symbols.push(selectedValue);
           fetchLatestPrice();
         }
-      } else {
-        addInput.classList.add("bounce");
-        addInput.focus();
-        setTimeout(() => {
-          addInput.classList.remove("bounce");
-        }, 500);
       }
+      // if (selectableValue.includes(selectedValue)) {
+
+      // } else {
+      //   addInput.classList.add("bounce");
+      //   addInput.focus();
+      //   setTimeout(() => {
+      //     addInput.classList.remove("bounce");
+      //   }, 500);
+      // }
     }
   }
   document
@@ -450,6 +540,7 @@ const { throttle } = require("./tools");
           // console.log(draggedBlockCount);
           // make placeholder move {draggedBlockCount} blocks
           // console.log(draggedBlockCount);
+          // console.log(draggedDistance);
           if (
             draggedBlockCount >= 0 - draggedBlockIndex &&
             draggedBlockCount < blockCount - draggedBlockIndex
@@ -545,9 +636,9 @@ const { throttle } = require("./tools");
             menu.style.display = "none";
           }, 500);
         }
-        requestAnimationFrame(() => {
+        setTimeout(() => {
           menu.classList.toggle("showed");
-        });
+        }, 50);
         menuExpanded = !menuExpanded;
       }
       menuShade.addEventListener("click", toggleMenuStatus);

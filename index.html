@@ -51,6 +51,9 @@
         <span class='add'>
           <img src="assets/add.png" alt="">
         </span>
+        <span class='alarm icon'>
+          <img src="assets/577241-200.png" alt="">
+        </span>
         <span class="editWrapper">
           <span class='editList showed'>
             <img src="assets/edit.png" alt="">
@@ -80,12 +83,32 @@
         <span>增加token</span>
         <span>X</span>
       </p>
-      <div class="addInputWrapper">
-        <input class='addInput' type="text" placeholder="交易对(如:eos_usdt)">
+      <div class="addInputWrapper inputWrapper">
+        <p>
+          <span>
+            请输入交易对
+          </span>
+          <span>
+            如btc_usdt
+          </span>
+        </p>
+        <input class='addInput input' type="text" tabindex="1">
         <div class="pairsDisplay"></div>
       </div>
-      <button>确定</button>
+      <div class='priceInputWrapper inputWrapper' style='display: none;'>
+        <p>
+          <span>
+            请输入监控价格
+          </span>
+          <span>
+            当到达该价格时会通知您
+          </span>
+        </p>
+        <input class='priceInput input' type="number" tabIndex='2' min='0' />
+      </div>
+      <button tabIndex='3'>确定</button>
     </div>
+    <!-- <button>23333</button> -->
   </div>
   <script type='text/javascript' src='./page.js'></script>
 </body>
