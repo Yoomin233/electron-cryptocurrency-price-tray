@@ -423,13 +423,14 @@ const { throttle } = require("./tools");
   mainWrapper.addEventListener(
     "mousedown",
     (() => {
-      const mainWrapperTop = mainWrapper.getBoundingClientRect().top;
+      // const mainWrapperTop = mainWrapper.getBoundingClientRect().top;
+      let blockCount;
       let blockDimension;
-      const blockCount = mainWrapper.childElementCount;
       let placeHoderDiv;
       let draggedBlock;
       let draggedBlockIndex;
       let mouseDragStartingY;
+      let latestMovedIndex;
       // let mouseDragStartingY;
       mainWrapper.addEventListener("mousemove", e => {
         if (draggedBlock) {
@@ -446,16 +447,49 @@ const { throttle } = require("./tools");
             draggedDistance > 0
               ? Math.floor(draggedDistance / blockDimension.height)
               : Math.ceil(draggedDistance / blockDimension.height);
-          console.log(draggedBlockCount);
+          // console.log(draggedBlockCount);
+          // make placeholder move {draggedBlockCount} blocks
+          // console.log(draggedBlockCount);
+          if (
+            draggedBlockCount >= 0 - draggedBlockIndex &&
+            draggedBlockCount < blockCount - draggedBlockIndex
+          ) {
+            if (latestMovedIndex !== draggedBlockCount) {
+              latestMovedIndex = draggedBlockCount;
+              // console.log(latestMovedIndex);
+              mainWrapper.removeChild(placeHoderDiv);
+              mainWrapper.insertBefore(
+                placeHoderDiv,
+                mainWrapper.childNodes[
+                  draggedBlockIndex +
+                    draggedBlockCount +
+                    (latestMovedIndex > 0 ? 1 : 0)
+                ]
+              );
+            }
+          }
           // if ()
         }
       });
       mainWrapper.addEventListener("mouseup", e => {
         if (draggedBlock) {
+          mainWrapper.removeChild(draggedBlock);
+          mainWrapper.insertBefore(
+            draggedBlock,
+            placeHoderDiv.nextElementSibling
+          );
+          mainWrapper.removeChild(placeHoderDiv);
+
           draggedBlock.style.position = "";
           draggedBlock.style.top = "";
           draggedBlock = null;
-          mainWrapper.removeChild(placeHoderDiv);
+          localStorage.setItem(
+            "tokens_list",
+            Array.prototype.map.call(
+              mainWrapper.childNodes,
+              (elem, index) => elem.dataset.symbol
+            )
+          );
         }
       });
       return e => {
@@ -463,18 +497,22 @@ const { throttle } = require("./tools");
         if (e.srcElement.classList.contains("dragBtn")) {
           draggedBlock = e.target.parentElement.parentElement;
           blockDimension = draggedBlock.getBoundingClientRect();
-          // record starting pos
+          // record starting pos and count
           // draggedBlock = draggedBlock;
           draggedBlockIndex = Array.prototype.indexOf.call(
             mainWrapper.childNodes,
             draggedBlock
           );
+          blockCount = mainWrapper.childElementCount;
           // draggedStartingTop = draggedBlock.getBoundingClientRect().top;
           mouseDragStartingY = e.clientY;
 
           // create placeholder div
           placeHoderDiv = document.createElement("div");
-          placeHoderDiv.setAttribute("style", "width: 100%;height: 53px");
+          placeHoderDiv.setAttribute(
+            "style",
+            `width: 100%;height: ${blockDimension.height}px`
+          );
           draggedBlock.parentElement.insertBefore(
             placeHoderDiv,
             draggedBlock.nextElementSibling
