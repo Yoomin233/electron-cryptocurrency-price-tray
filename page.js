@@ -1,8 +1,8 @@
-const { ipcRenderer, shell } = require("electron");
-// const pako = require("pako");
-const fs = require("fs");
-const { throttle, showTip } = require("./tools");
 (function() {
+  const { ipcRenderer, shell } = require("electron");
+  // const pako = require("pako");
+  const fs = require("fs");
+  const { throttle, showTip } = require("./tools");
   const mainWrapper = document.querySelector(".scrollable");
   const outerWrapper = document.querySelector("div.mainWrapper");
   const themeSwitch = document.querySelector(".themeWrapper > span.switch");
@@ -65,7 +65,7 @@ const { throttle, showTip } = require("./tools");
   foregroundFetchIntervalInput.addEventListener("blur", e => {
     const val = Number(e.target.value);
     if (val < 5) {
-      e.target.value = '5';
+      e.target.value = "5";
       return showTip("最小更新间隔为5秒!");
     }
     if (foregroundFetchInterval !== val) {
@@ -73,14 +73,14 @@ const { throttle, showTip } = require("./tools");
       // foregroundFetchInterval = e.target.value;
       fetchInterval = foregroundFetchInterval = val;
       showTip("前台更新时间更新成功!");
-      setTimeout(mainProcess, fetchInterval * 1000);
+      mainTimer = setTimeout(mainProcess, fetchInterval * 1000);
       localStorage.setItem("foregroundFetchInterval", foregroundFetchInterval);
     }
   });
   backgroundFetchIntervalInput.addEventListener("blur", e => {
     const val = Number(e.target.value);
     if (val < 5) {
-      e.target.value = '5';
+      e.target.value = "5";
       return showTip("最小更新间隔为5秒!");
     }
     if (backgroundFetchInterval !== val) {
@@ -200,11 +200,7 @@ const { throttle, showTip } = require("./tools");
 
   // change theme
 
-  themeSwitch.addEventListener("click", e => {
-    // const ifDarkend = Array.prototype.includes.call(
-    //   outerWrapper.classList,
-    //   "darken"
-    // );
+  function changeTeme(e) {
     const ifDarkend = themeCheckBox.checked;
     if (!ifDarkend) {
       localStorage.setItem("themeDarken", 1);
@@ -214,23 +210,25 @@ const { throttle, showTip } = require("./tools");
     themeCheckBox.checked = !ifDarkend;
     // if (ifDarkend) {
     outerWrapper.classList.toggle("darken");
-    // }
+  }
+  themeSwitch.addEventListener("click", changeTeme);
+  themeSwitch.addEventListener("keydown", e => {
+    if (e.keyCode === 32 || e.keyCode === 13) {
+      changeTeme(e);
+    }
   });
-
-  showInfoSwitch.addEventListener("click", e => {
-    // const ifDarkend = Array.prototype.includes.call(
-    //   outerWrapper.classList,
-    //   "darken"
-    // );
+  function changeInfoShow(e) {
     const ifInfoShowed = showInfoCheckBox.checked;
     localStorage.setItem("showInfo", ifInfoShowed ? 0 : 1);
     ipcRenderer.send("signal-info-show", !ifInfoShowed);
-    // if (!ifInfoShowed) {
-    // } else {
-    //   localStorage.removeItem("showInfo", 0);
-    //   ipcRenderer.send("signal-info-show", false);
-    // }
     showInfoCheckBox.checked = !ifInfoShowed;
+  }
+
+  showInfoSwitch.addEventListener("click", changeInfoShow);
+  showInfoSwitch.addEventListener("keydown", e => {
+    if (e.keyCode === 32 || e.keyCode === 13) {
+      changeInfoShow(e);
+    }
   });
   // fetch now!
   lastFetchImg.addEventListener("click", e => {
@@ -589,7 +587,7 @@ const { throttle, showTip } = require("./tools");
         if (!editingList) {
           clearTimeout(mainTimer);
         } else {
-          setTimeout(mainProcess, fetchInterval * 1000);
+          mainTimer = setTimeout(mainProcess, fetchInterval * 1000);
         }
         editingList = !editingList;
       };
@@ -735,6 +733,7 @@ const { throttle, showTip } = require("./tools");
         menuIcon.classList.toggle("expanded");
         if (!menuExpanded) {
           menu.style.display = "block";
+          themeSwitch.focus();
         } else {
           setTimeout(() => {
             menu.style.display = "none";
@@ -812,6 +811,6 @@ const { throttle, showTip } = require("./tools");
     // console.log("focus!");
     clearTimeout(mainTimer);
     fetchInterval = foregroundFetchInterval;
-    mainProcess();
+    mainTimer = mainProcess();
   });
 })();

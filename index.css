@@ -78,10 +78,8 @@ input {
 }
 /* .menuInput > input {
 } */
-input:focus,
-button:focus,
-span:focus {
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+*:not(body):focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25)!important;
 }
 
 .mainWrapper {
@@ -166,7 +164,7 @@ span:focus {
   border-bottom: 1px solid #ccc;
   padding-bottom: 10px;
   /* display: flex; */
-  box-shadow: 0 1px 0 0 white;
+  /* box-shadow: 0 1px 0 0 white; */
 }
 .mainWrapper.darken .menu > .menuList {
   background-color: #1b1b1b;
@@ -581,7 +579,7 @@ span:focus {
   padding-bottom: 10px;
   border-bottom: 1px solid;
   border-color: rgba(204, 204, 204, 0.94);
-  box-shadow: 0 1px 0 0 #fff;
+  /* box-shadow: 0 1px 0 0 #fff; */
   font-size: 12.8px;
 }
 .modal > p:first-child {
