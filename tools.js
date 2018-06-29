@@ -16,3 +16,15 @@ exports.throttle = function(func, delay, tail) {
     }
   };
 };
+
+exports.showTip = function(message, delay = 3000) {
+  const div = document.createElement("div");
+  div.classList.add("tip");
+  div.innerHTML = String(message);
+  document.body.appendChild(div);
+  setTimeout(() => div.classList.add("showed"), 50);
+  setTimeout(() => {
+    div.classList.remove("showed");
+    setTimeout(() => document.body.removeChild(div), 500);
+  }, delay);
+};

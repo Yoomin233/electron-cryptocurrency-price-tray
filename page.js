@@ -1,7 +1,7 @@
 const { ipcRenderer, shell } = require("electron");
 // const pako = require("pako");
 const fs = require("fs");
-const { throttle } = require("./tools");
+const { throttle, showTip } = require("./tools");
 (function() {
   // datas
   let symbols =
@@ -29,6 +29,7 @@ const { throttle } = require("./tools");
   );
   const addSymbolButton = document.querySelector(".controls > p > span.add");
   const adder = document.querySelector("div.symbolAdder");
+  const priceAlerts = document.querySelector("div.priceAlerts");
   const addInput = document.querySelector("input.addInput");
 
   const ifDarkend = localStorage.getItem("themeDarken");
@@ -88,7 +89,9 @@ const { throttle } = require("./tools");
             (nowPrice < alertPrice && lastPrice > alertPrice) ||
             nowPrice === alertPrice
           ) {
-            new Notification(`${symbol} price achieved! latestPrice: ${nowPrice}`)
+            new Notification(
+              `${symbol} price achieved! latestPrice: ${nowPrice}`
+            );
           }
         }
       }
@@ -197,30 +200,33 @@ const { throttle } = require("./tools");
   });
 
   let addMode;
-  const showAdder = (() => {
+  const showModal = (() => {
     const adderTitle = adder.querySelector("p:first-child > span:first-child");
     const priceInputWrapper = adder.querySelector(".priceInputWrapper");
     const priceInput = adder.querySelector(".priceInput");
 
-    return (e, mode) => {
-      if (document.activeElement === adder) {
-        return;
+    return (whichModal, mode) => {
+      // if (document.activeElement === adder) {
+      //   return;
+      // }
+      const modal = document.querySelector(`div.modal.${whichModal}`);
+      if (whichModal === "symbolAdder") {
+        if (mode === "alert") {
+          adderTitle.innerHTML = "增加价格通知";
+          priceInputWrapper.style.display = "flex";
+        } else {
+          adderTitle.innerHTML = "增加交易对";
+          priceInputWrapper.style.display = "none";
+        }
       }
-      if (mode === "alert") {
-        adderTitle.innerHTML = "增加价格通知";
-        priceInputWrapper.style.display = "flex";
-      } else {
-        adderTitle.innerHTML = "增加交易对";
-        priceInputWrapper.style.display = "none";
-      }
-      adder.style.display = "block";
+      modal.style.display = "block";
       // requestAnimationFrame(() => {
       //   adder.classList.add("showed");
       //   addInput.focus();
       // });
       setTimeout(() => {
-        adder.classList.add("showed");
-        addInput.focus();
+        modal.classList.add("showed");
+        whichModal === "symbolAdder" && addInput.focus();
       }, 50);
       if (!adder.dataset.pairs) {
         fetch("https://data.gateio.io/api2/1/pairs")
@@ -238,28 +244,41 @@ const { throttle } = require("./tools");
   // add symbol appear
   addSymbolButton.addEventListener("click", e => {
     addMode = "token";
-    showAdder(e, addMode);
+    showModal("symbolAdder", addMode);
   });
 
-  // add price alert button
+  // show price alert button
   document.querySelector("span.alarm").addEventListener("click", e => {
-    addMode = "alert";
-    showAdder(e, addMode);
+    showModal("priceAlerts", addMode);
   });
 
-  // add symbol disappear
+  // add price alerts
+  document
+    .querySelector("button.addPriceAlerts")
+    .addEventListener("click", e => {
+      addMode = "alert";
+      showModal("symbolAdder", addMode);
+    });
+
+  // modal disappear
   document
     .querySelector("div.symbolAdder > p:first-of-type > span:last-of-type")
-    .addEventListener("click", addSymbolDisappear);
+    .addEventListener("click", () => modalDisappear("symbolAdder"));
+  document
+    .querySelector("div.priceAlerts > p:first-of-type > span:last-of-type")
+    .addEventListener("click", () => modalDisappear("priceAlerts"));
 
-  function addSymbolDisappear(e) {
-    adder.classList.remove("showed");
-    addInput.value = "";
-    addInput.blur();
-    adder.querySelector("input.priceInput").value = "";
-    adder.querySelector("input.priceInput").blur();
+  function modalDisappear(whichModal) {
+    const modal = document.querySelector(`div.modal.${whichModal}`);
+    modal.classList.remove("showed");
+    if (whichModal === "symbolAdder") {
+      addInput.value = "";
+      addInput.blur();
+      adder.querySelector("input.priceInput").value = "";
+      adder.querySelector("input.priceInput").blur();
+    }
     setTimeout(() => {
-      adder.style.display = "none";
+      modal.style.display = "none";
     }, 500);
   }
   // addInput.addEventListener("input", e => {
@@ -418,19 +437,19 @@ const { throttle } = require("./tools");
         if (!selectedAlertPrice.value || selectedAlertPrice.value <= 0) {
           return inputBounce(selectedAlertPrice);
         }
+        showTip(`${alerts[selectedValue] ? "更新" : "新增"}价格提醒成功!`);
         alerts[selectedValue] = {
           price: selectedAlertPrice.value,
           persist: true
         };
         localStorage.setItem("alerts", JSON.stringify(alerts));
-        addSymbolDisappear();
-      } else {
-        addSymbolDisappear(e);
-        if (!symbols.includes(selectedValue)) {
-          // debugger;
-          symbols.push(selectedValue);
-          fetchLatestPrice();
-        }
+        // modalDisappear();
+      }
+      modalDisappear("symbolAdder");
+      if (!symbols.includes(selectedValue)) {
+        // debugger;
+        symbols.push(selectedValue);
+        fetchLatestPrice();
       }
       // if (selectableValue.includes(selectedValue)) {
 
@@ -502,12 +521,18 @@ const { throttle } = require("./tools");
   mainWrapper.addEventListener("click", e => {
     // del btn clicked
     if (e.srcElement.classList.contains("delBtn")) {
+      // remove dom element
       const parent = e.target.parentElement.parentElement;
       const symbolName = parent.dataset.symbol;
       parent.remove();
+      // modify local storage
       symbols.splice(symbols.indexOf(symbolName), 1);
-      // console.log(symbols);
       localStorage.setItem("tokens_list", symbols);
+      if (alerts[symbolName]) {
+        delete alerts[symbolName];
+        showTip(`删除价格提醒: ${symbolName.replace("_", "/")}`);
+        localStorage.setItem("alerts", JSON.stringify(alerts));
+      }
     }
   });
   mainWrapper.addEventListener(
@@ -658,6 +683,10 @@ const { throttle } = require("./tools");
   document.querySelector("p.exit").addEventListener("click", e => {
     ipcRenderer.send("process_exit");
   });
+
+  // document.querySelector("button.testBtn").addEventListener("click", () => {
+  //   showTip("hehdasdsds");
+  // });
 
   // send prices to tray
   setTimeout(function inner(index = 0) {
