@@ -3,23 +3,13 @@ const { ipcRenderer, shell } = require("electron");
 const fs = require("fs");
 const { throttle, showTip } = require("./tools");
 (function() {
-  // datas
-  let symbols =
-    (localStorage.getItem("tokens_list") &&
-      localStorage.getItem("tokens_list").split(",")) ||
-    [];
-  let prices = [];
-  let lastFetchPrice = [];
-  let alerts =
-    (localStorage.getItem("alerts") &&
-      JSON.parse(localStorage.getItem("alerts"))) ||
-    {};
-
   const mainWrapper = document.querySelector(".scrollable");
   const outerWrapper = document.querySelector("div.mainWrapper");
-  const themeSwitch = document.querySelector(".themeWrapper > span");
+  const themeSwitch = document.querySelector(".themeWrapper > span.switch");
   const themeCheckBox = document.querySelector(".switchWrapper > input");
-  const showInfoSwitch = document.querySelector(".showInfoSwitch > span");
+  const showInfoSwitch = document.querySelector(
+    ".showInfoSwitch > span.switch"
+  );
   const showInfoCheckBox = document.querySelector(".showInfoSwitch > input");
   const lastFetchedTime = document.querySelector(
     ".infoAndThettings > span:first-of-type > span"
@@ -31,6 +21,24 @@ const { throttle, showTip } = require("./tools");
   const adder = document.querySelector("div.symbolAdder");
   const priceAlerts = document.querySelector("div.priceAlerts");
   const addInput = document.querySelector("input.addInput");
+  const foregroundFetchIntervalInput = document.querySelector(
+    "p.foreBgRefresh > input"
+  );
+  const backgroundFetchIntervalInput = document.querySelector(
+    "p.bgRefresh > input"
+  );
+
+  // reading datas
+  let symbols =
+    (localStorage.getItem("tokens_list") &&
+      localStorage.getItem("tokens_list").split(",")) ||
+    [];
+  let prices = [];
+  let lastFetchPrice = [];
+  let alerts =
+    (localStorage.getItem("alerts") &&
+      JSON.parse(localStorage.getItem("alerts"))) ||
+    {};
 
   const ifDarkend = localStorage.getItem("themeDarken");
   if (ifDarkend) {
@@ -44,6 +52,44 @@ const { throttle, showTip } = require("./tools");
   } else if (ifInfoShowed === "1") {
     showInfoCheckBox.checked = true;
   }
+  let foregroundFetchInterval =
+    (localStorage.getItem("foregroundFetchInterval") &&
+      Number(localStorage.getItem("foregroundFetchInterval"))) ||
+    15;
+  let backgroundFetchInterval =
+    (localStorage.getItem("backgroundFetchInterval") &&
+      Number(localStorage.getItem("backgroundFetchInterval"))) ||
+    120;
+  foregroundFetchIntervalInput.value = foregroundFetchInterval;
+  backgroundFetchIntervalInput.value = backgroundFetchInterval;
+  foregroundFetchIntervalInput.addEventListener("blur", e => {
+    const val = Number(e.target.value);
+    if (val < 5) {
+      e.target.value = '5';
+      return showTip("最小更新间隔为5秒!");
+    }
+    if (foregroundFetchInterval !== val) {
+      clearTimeout(mainTimer);
+      // foregroundFetchInterval = e.target.value;
+      fetchInterval = foregroundFetchInterval = val;
+      showTip("前台更新时间更新成功!");
+      setTimeout(mainProcess, fetchInterval * 1000);
+      localStorage.setItem("foregroundFetchInterval", foregroundFetchInterval);
+    }
+  });
+  backgroundFetchIntervalInput.addEventListener("blur", e => {
+    const val = Number(e.target.value);
+    if (val < 5) {
+      e.target.value = '5';
+      return showTip("最小更新间隔为5秒!");
+    }
+    if (backgroundFetchInterval !== val) {
+      backgroundFetchInterval = val;
+      showTip("后台更新时间更新成功!");
+      localStorage.setItem("backgroundFetchInterval", backgroundFetchInterval);
+    }
+  });
+
   // if is fetching data...
   let fetching = false;
 
@@ -199,11 +245,31 @@ const { throttle, showTip } = require("./tools");
     });
   });
 
+  function renderPriceAlerts() {
+    const priceAlertsListWrapper = document.querySelector(
+      ".priceAlertsListwrapper"
+    );
+    priceAlertsListWrapper.innerHTML = Object.keys(alerts)
+      .map(
+        key =>
+          `<p data-pairname='${key}'><span>交易对:${key.replace(
+            "_",
+            "/"
+          )}</span><span>价格:${
+            alerts[key]["price"]
+          }</span><span class='delBtn'>X</span></p>`
+      )
+      .concat(
+        "<p><button class='green addPriceAlerts'>增加价格提醒</button></p>"
+      )
+      .join("");
+  }
   let addMode;
   const showModal = (() => {
     const adderTitle = adder.querySelector("p:first-child > span:first-child");
     const priceInputWrapper = adder.querySelector(".priceInputWrapper");
-    const priceInput = adder.querySelector(".priceInput");
+    const shade = document.querySelector(".modalShade");
+    // const priceInput = adder.querySelector(".priceInput");
 
     return (whichModal, mode) => {
       // if (document.activeElement === adder) {
@@ -218,14 +284,14 @@ const { throttle, showTip } = require("./tools");
           adderTitle.innerHTML = "增加交易对";
           priceInputWrapper.style.display = "none";
         }
+      } else if (whichModal === "priceAlerts") {
+        renderPriceAlerts();
       }
       modal.style.display = "block";
-      // requestAnimationFrame(() => {
-      //   adder.classList.add("showed");
-      //   addInput.focus();
-      // });
+      shade.style.display = "block";
       setTimeout(() => {
         modal.classList.add("showed");
+        shade.classList.add("showed");
         whichModal === "symbolAdder" && addInput.focus();
       }, 50);
       if (!adder.dataset.pairs) {
@@ -254,10 +320,18 @@ const { throttle, showTip } = require("./tools");
 
   // add price alerts
   document
-    .querySelector("button.addPriceAlerts")
+    .querySelector(".priceAlertsListwrapper")
     .addEventListener("click", e => {
-      addMode = "alert";
-      showModal("symbolAdder", addMode);
+      if (e.srcElement.tagName === "BUTTON") {
+        addMode = "alert";
+        showModal("symbolAdder", addMode);
+      } else if (e.srcElement.classList.contains("delBtn")) {
+        const pairName = e.srcElement.parentElement.dataset.pairname;
+        delete alerts[pairName];
+        localStorage.setItem("alerts", JSON.stringify(alerts));
+        showTip("删除价格提醒成功!");
+        renderPriceAlerts();
+      }
     });
 
   // modal disappear
@@ -270,7 +344,10 @@ const { throttle, showTip } = require("./tools");
 
   function modalDisappear(whichModal) {
     const modal = document.querySelector(`div.modal.${whichModal}`);
+    const shade = document.querySelector("div.modalShade");
+    const modals = document.querySelectorAll("div.modal.showed");
     modal.classList.remove("showed");
+    modals.length === 1 && shade.classList.remove("showed");
     if (whichModal === "symbolAdder") {
       addInput.value = "";
       addInput.blur();
@@ -279,6 +356,7 @@ const { throttle, showTip } = require("./tools");
     }
     setTimeout(() => {
       modal.style.display = "none";
+      modals.length === 1 && (shade.style.display = "none");
     }, 500);
   }
   // addInput.addEventListener("input", e => {
@@ -443,6 +521,7 @@ const { throttle, showTip } = require("./tools");
           persist: true
         };
         localStorage.setItem("alerts", JSON.stringify(alerts));
+        renderPriceAlerts();
         // modalDisappear();
       }
       modalDisappear("symbolAdder");
@@ -510,7 +589,7 @@ const { throttle, showTip } = require("./tools");
         if (!editingList) {
           clearTimeout(mainTimer);
         } else {
-          setTimeout(mainProcess, fetchInterval);
+          setTimeout(mainProcess, fetchInterval * 1000);
         }
         editingList = !editingList;
       };
@@ -706,34 +785,33 @@ const { throttle, showTip } = require("./tools");
   }, 5000);
 
   // start main process
-  let fetchInterval = 5000;
+  let fetchInterval = foregroundFetchInterval;
   let mainTimer = null;
 
   fetchLatestPrice();
   function mainProcess() {
+    console.log("main run!");
     try {
       fetchLatestPrice();
-      mainTimer = setTimeout(mainProcess, fetchInterval);
+      mainTimer = setTimeout(mainProcess, fetchInterval * 1000);
     } catch (e) {
       // console.log(e);
-      mainTimer = setTimeout(mainProcess, fetchInterval);
+      mainTimer = setTimeout(mainProcess, fetchInterval * 1000);
     }
   }
   mainProcess();
-  // mainTimer = setTimeout(function inner() {
-  // }, fetchInterval);
 
   ipcRenderer.on("event-window-blur", e => {
     // console.log("blured!");
     clearTimeout(mainTimer);
-    fetchInterval = 30000;
-    // mainProcess();
+    fetchInterval = backgroundFetchInterval;
+    mainTimer = setTimeout(mainProcess, fetchInterval * 1000);
   });
 
   ipcRenderer.on("event-window-focus", e => {
     // console.log("focus!");
     clearTimeout(mainTimer);
-    fetchInterval = 5000;
+    fetchInterval = foregroundFetchInterval;
     mainProcess();
   });
 })();

@@ -13,21 +13,49 @@
   <div class="mainWrapper">
     <div class='menu'>
       <div class="menuList">
-        <p>
-          <span class='themeWrapper switchWrapper'>
+        <p class='themeWrapper switchWrapper'>
+          <!-- <span class='themeWrapper switchWrapper'> -->
+          <span>
             暗色主题:
-            <!-- <label for="themeChanger"></label> -->
-            <input type="checkbox">
-            <span></span>
+
           </span>
+          <!-- <label for="themeChanger"></label> -->
+          <input type="checkbox">
+          <span tabindex="1" class='switch'></span>
+          <!-- </span> -->
         </p>
-        <p>
-          <span class='showInfoSwitch switchWrapper'>
+        <p class='showInfoSwitch switchWrapper'>
+          <!-- <span class='showInfoSwitch switchWrapper'> -->
+          <span>
             托盘区轮播:
-            <!-- <label for="themeChanger"></label> -->
-            <input type="checkbox">
-            <span></span>
+
           </span>
+          <!-- <label for="themeChanger"></label> -->
+          <input type="checkbox">
+          <span tabindex="2" class='switch'></span>
+          <!-- </span> -->
+        </p>
+        <p class='foreBgRefresh switchWrapper'>
+          <!-- <span class='inputWrapper menuInput'> -->
+          <span>
+            前台更新间隔(秒):
+
+          </span>
+          <!-- <label for="themeChanger"></label> -->
+          <input type="number" tabindex="3" min='5'>
+          <!-- <span></span> -->
+          <!-- </span> -->
+        </p>
+        <p class='bgRefresh switchWrapper'>
+          <!-- <span class='inputWrapper menuInput'> -->
+          <span>
+            后台更新间隔(秒):
+
+          </span>
+          <!-- <label for="themeChanger"></label> -->
+          <input type="number" tabindex="4" min='5'>
+          <!-- <span></span> -->
+          <!-- </span> -->
         </p>
         <p class='exit'>退出程序</p>
         <p class='about'>
@@ -83,10 +111,18 @@
         <span>已设置的价格提醒</span>
         <span>X</span>
       </p>
-      <p>ghegda sds</p>
-      <p>
-        <button class='addPriceAlerts'>增加</button>
-      </p>
+      <div class='priceAlertsListwrapper'>
+        <p>
+          <span>eos-usdt</span>
+          <span>33</span>
+          <span>X</span>
+        </p>
+        <p>
+          <span>eos-usdt</span>
+          <span>33</span>
+          <span>X</span>
+        </p>
+      </div>
     </div>
     <div class="modal symbolAdder" style='display: none;'>
       <p>
@@ -118,6 +154,7 @@
       </div>
       <button tabIndex='3' class='green'>确定</button>
     </div>
+    <div class="modalShade"></div>
     <!-- <button class='testBtn'>23333</button> -->
   </div>
   <script type='text/javascript' src='./page.js'></script>
