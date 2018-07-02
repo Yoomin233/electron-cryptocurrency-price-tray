@@ -135,9 +135,20 @@
             (nowPrice < alertPrice && lastPrice > alertPrice) ||
             nowPrice === alertPrice
           ) {
-            new Notification(
-              `${symbol} price achieved! latestPrice: ${nowPrice}`
-            );
+            if (!alerts[symbol].notified) {
+              new Notification(
+                `${symbol}价格达到设定值!最新价:${nowPrice},方向:${
+                  nowPrice < lastPrice ? "下跌" : "上涨"
+                }`
+              );
+              alerts[symbol].notified = true;
+              setTimeout(
+                (symbol => {
+                  return () => (alerts[symbol].notified = false);
+                })(symbol),
+                5 * 60 * 1000
+              );
+            }
           }
         }
       }
@@ -149,52 +160,65 @@
   // mainWrapper.
 
   function renderToPage(dataArr) {
-    lastFetchedTime.innerHTML = `${
-      new Date().getHours() < 10
-        ? "0" + new Date().getHours()
-        : new Date().getHours()
-    }:${
-      new Date().getMinutes() < 10
-        ? "0" + new Date().getMinutes()
-        : new Date().getMinutes()
-    }:${
-      new Date().getSeconds() < 10
-        ? "0" + new Date().getSeconds()
-        : new Date().getSeconds()
-    }`;
-    for (let [index, val] of dataArr.entries()) {
-      const thisSymbol = symbols[index];
-      let thisSymbolWrapper = document.querySelector(
-        `div[data-symbol=${thisSymbol}]`
+    if (dataArr.length) {
+      const emptyPlaceHolder = mainWrapper.querySelector(
+        "div.emptyPlaceHolder"
       );
-      if (!thisSymbolWrapper) {
-        thisSymbolWrapper = document.createElement("div");
-        thisSymbolWrapper.setAttribute("data-symbol", thisSymbol);
-        thisSymbolWrapper.setAttribute(
-          "class",
-          `symbol-block ${editingList ? "flexShrink1" : ""}`
-        );
-        mainWrapper.appendChild(thisSymbolWrapper);
+      if (emptyPlaceHolder) {
+        mainWrapper.removeChild(emptyPlaceHolder);
       }
-      thisSymbolWrapper.innerHTML = `<div class='symbol-name'><span>${thisSymbol
-        .split("_")[0]
-        .toUpperCase()}</span><span>/${thisSymbol
-        .split("_")[1]
-        .toUpperCase()}</span></div><div class='lowHigh'><p class="pricemore">${Number(
-        val.high24hr
-      ).toFixed(4)}</p><p class="pricesmall">${Number(val.low24hr).toFixed(
-        4
-      )}</p></div><div class='last'>${Number(val.last).toPrecision(
-        4
-      )}</div><div class="${
-        Number(val.percentChange) >= 0 ? "percentage raise" : "percentage"
-      }">${val.percentChange >= 0 ? "+" : ""}${Number(
-        val.percentChange
-      ).toFixed(2)}%</div>${
-        editingList
-          ? "<div class='controlWrapper'><span class='delBtn'>-</span><span class='dragBtn'></span></div>"
-          : ""
+
+      lastFetchedTime.innerHTML = `${
+        new Date().getHours() < 10
+          ? "0" + new Date().getHours()
+          : new Date().getHours()
+      }:${
+        new Date().getMinutes() < 10
+          ? "0" + new Date().getMinutes()
+          : new Date().getMinutes()
+      }:${
+        new Date().getSeconds() < 10
+          ? "0" + new Date().getSeconds()
+          : new Date().getSeconds()
       }`;
+      for (let [index, val] of dataArr.entries()) {
+        const thisSymbol = symbols[index];
+
+        let thisSymbolWrapper = document.querySelector(
+          `div[data-symbol=${thisSymbol}]`
+        );
+        if (!thisSymbolWrapper) {
+          thisSymbolWrapper = document.createElement("div");
+          thisSymbolWrapper.setAttribute("data-symbol", thisSymbol);
+          thisSymbolWrapper.setAttribute(
+            "class",
+            `symbol-block ${editingList ? "flexShrink1" : ""}`
+          );
+          mainWrapper.appendChild(thisSymbolWrapper);
+        }
+        thisSymbolWrapper.innerHTML = `<div class='symbol-name'><span>${thisSymbol
+          .split("_")[0]
+          .toUpperCase()}</span><span>/${thisSymbol
+          .split("_")[1]
+          .toUpperCase()}</span></div><div class='lowHigh'><p class="pricemore">${Number(
+          val.high24hr
+        ).toFixed(4)}</p><p class="pricesmall">${Number(val.low24hr).toFixed(
+          4
+        )}</p></div><div class='last'>${Number(val.last).toPrecision(
+          4
+        )}</div><div class="${
+          Number(val.percentChange) >= 0 ? "percentage raise" : "percentage"
+        }">${val.percentChange >= 0 ? "+" : ""}${Number(
+          val.percentChange
+        ).toFixed(2)}%</div>${
+          editingList
+            ? "<div class='controlWrapper'><span class='delBtn'>-</span><span class='dragBtn'></span></div>"
+            : ""
+        }`;
+      }
+    } else {
+      // empty
+      mainWrapper.innerHTML = `<div class='emptyPlaceHolder'>没有要显示的交易对, 点击右上角'+'号去添加!</div>`;
     }
   }
 
@@ -253,7 +277,7 @@
           `<p data-pairname='${key}'><span>交易对:${key.replace(
             "_",
             "/"
-          )}</span><span>价格:${
+          )}</span><span class='alertPrice'>价格:${
             alerts[key]["price"]
           }</span><span class='delBtn'>X</span></p>`
       )
@@ -329,6 +353,35 @@
         localStorage.setItem("alerts", JSON.stringify(alerts));
         showTip("删除价格提醒成功!");
         renderPriceAlerts();
+      } else if (e.srcElement.classList.contains("alertPrice")) {
+        const pairName = e.srcElement.parentElement.dataset.pairname;
+        const priceElem = e.srcElement;
+        const inputElem = document.createElement("input");
+        inputElem.value = Number(priceElem.innerHTML.match(/([0-9.]+)/g));
+        inputElem.setAttribute("type", "number");
+        inputElem.addEventListener("blur", e => {
+          // ui
+          const val = e.target.value;
+          if (val <= 0) {
+            inputElem.classList.add("bounce");
+            // e.preventDefault();
+            inputElem.value = "";
+            inputElem.focus();
+            return setTimeout(() => inputElem.classList.remove("bounce"), 500);
+          }
+
+          priceElem.removeChild(inputElem);
+          priceElem.innerHTML = `价格:${e.target.value}`;
+          // modal
+          alerts[pairName] = Object.assign({}, alerts[pairName], {
+            price: val
+          });
+          localStorage.setItem("alerts", JSON.stringify(alerts));
+          showTip("价格提醒更新成功!");
+        });
+        priceElem.innerHTML = "";
+        priceElem.appendChild(inputElem);
+        inputElem.focus();
       }
     });
 
