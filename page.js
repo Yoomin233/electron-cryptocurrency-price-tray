@@ -184,8 +184,8 @@
         val.high24hr
       ).toFixed(4)}</p><p class="pricesmall">${Number(val.low24hr).toFixed(
         4
-      )}</p></div><div class='last'>${Number(val.last).toFixed(
-        2
+      )}</p></div><div class='last'>${Number(val.last).toPrecision(
+        4
       )}</div><div class="${
         Number(val.percentChange) >= 0 ? "percentage raise" : "percentage"
       }">${val.percentChange >= 0 ? "+" : ""}${Number(
