@@ -19,3 +19,6 @@
 2.  `npm run package`
 
 输出应用在`./out`文件夹, 之后你可以将`Coins-Price_Tracker.app`文件夹拷贝到`~/Applications`文件夹以方便在spotlight搜索中打开
+
+Data Source:
+https://gate.io/
