@@ -103,7 +103,7 @@ ipcMain.on("show-window", () => {
 
 let ifShowInfo = true;
 ipcMain.on("price-update", (e, data) => {
-  ifShowInfo &&
+  ifShowInfo && data &&
     tray.setTitle(`${data.symbolName}:${Number(data.last).toPrecision(4)}`);
 });
 

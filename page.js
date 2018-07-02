@@ -218,7 +218,7 @@
       }
     } else {
       // empty
-      mainWrapper.innerHTML = `<div class='emptyPlaceHolder'>没有要显示的交易对, 点击右上角'+'号去添加!</div>`;
+      mainWrapper.innerHTML = `<div class='emptyPlaceHolder'>没有要显示的交易对, 点击右上角'+'号去添加吧!</div>`;
     }
   }
 

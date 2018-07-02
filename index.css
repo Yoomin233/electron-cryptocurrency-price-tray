@@ -687,6 +687,17 @@ input {
   width: 8em; */
   width: 35%;
 }
+.emptyPlaceHolder {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  color: #868585;
+  text-align: center;
+  line-height: 300px;
+}
 
 .pairsDisplay {
   --selected-color: #d4d4d4;
@@ -849,8 +860,8 @@ p.pair_selected {
   /* width: 18px; */
   height: 80%;
   opacity: 0.8;
-  filter: drop-shadow(22px 0px 0 #444);
-  transform: translateX(-22px);
+  /* filter: drop-shadow(22px 0px 0 #444); */
+  /* transform: translateX(-22px); */
   /* vertical-align: sub; */
   vertical-align: bottom;
 }
