@@ -1,4 +1,5 @@
-
+⚠️⚠️⚠️ This project is unavailable due to remote API changes.
+⚠️⚠️⚠️ 由于比特儿的行情API改变, 该项目不可用.
 ## Features
 
 #### 1. 在主界面添加, 删除, 排序交易对;
